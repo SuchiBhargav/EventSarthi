@@ -179,7 +179,7 @@ app.add_middleware(
 
 # Custom Middleware
 app.add_middleware(LoggingMiddleware)
-app.add_middleware(RateLimitMiddleware)
+app.add_middleware(RateLimitMiddleware, requests_per_minute=settings.RATE_LIMIT_PER_MINUTE)
 app.add_middleware(TenantIsolationMiddleware)
 
 
