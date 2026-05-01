@@ -1,9 +1,10 @@
 """
 Planner Management Routes
 """
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
@@ -16,6 +17,7 @@ router = APIRouter()
 
 class PlannerUpdate(BaseModel):
     """Schema for updating planner profile"""
+
     full_name: Optional[str] = None
     company_name: Optional[str] = None
     phone: Optional[str] = None
@@ -26,7 +28,7 @@ class PlannerUpdate(BaseModel):
 
 @router.get("/me")
 async def get_current_planner_profile(
-    current_planner: Planner = Depends(get_current_planner)
+    current_planner: Planner = Depends(get_current_planner),
 ):
     """Get current planner profile"""
     return {
@@ -45,7 +47,7 @@ async def get_current_planner_profile(
         "language_preference": current_planner.language_preference,
         "timezone": current_planner.timezone,
         "created_at": current_planner.created_at,
-        "last_login_at": current_planner.last_login_at
+        "last_login_at": current_planner.last_login_at,
     }
 
 
@@ -53,7 +55,7 @@ async def get_current_planner_profile(
 async def update_planner_profile(
     profile_data: PlannerUpdate,
     current_planner: Planner = Depends(get_current_planner),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Update planner profile"""
     if profile_data.full_name is not None:
@@ -68,11 +70,11 @@ async def update_planner_profile(
         current_planner.language_preference = profile_data.language_preference  # type: ignore[assignment]
     if profile_data.timezone is not None:
         current_planner.timezone = profile_data.timezone  # type: ignore[assignment]
-    
+
     current_planner.updated_at = datetime.utcnow()  # type: ignore[assignment]
     db.commit()
     db.refresh(current_planner)
-    
+
     return {
         "planner_id": str(current_planner.planner_id),
         "email": current_planner.email,
@@ -82,5 +84,5 @@ async def update_planner_profile(
         "whatsapp_number": current_planner.whatsapp_number,
         "language_preference": current_planner.language_preference,
         "timezone": current_planner.timezone,
-        "updated_at": current_planner.updated_at
+        "updated_at": current_planner.updated_at,
     }

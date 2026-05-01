@@ -2,11 +2,11 @@
 Authentication Routes
 Handles planner registration, login, and token management
 """
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import secrets
-import uuid
 
 from app.database import get_db
 from app.dependencies import get_current_planner
@@ -16,7 +16,7 @@ from app.core.security import (
     verify_password,
     create_access_token,
     create_refresh_token,
-    decode_token
+    decode_token,
 )
 from app.config import settings
 from app.schemas import (
@@ -55,22 +55,21 @@ blacklisted_tokens = set()
                         "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                         "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                         "token_type": "bearer",
-                        "expires_in": 1800
+                        "expires_in": 1800,
                     }
                 }
-            }
+            },
         },
         400: {"description": "Invalid input or email already exists"},
-        422: {"description": "Validation error"}
-    }
+        422: {"description": "Validation error"},
+    },
 )
 async def register_planner(
-    planner_data: PlannerRegister,
-    db: Session = Depends(get_db)
+    planner_data: PlannerRegister, db: Session = Depends(get_db)
 ):
     """
     Register a new planner account.
-    
+
     - **email**: Valid email address (must be unique)
     - **password**: Minimum 8 characters
     - **full_name**: Planner's full name
@@ -78,21 +77,24 @@ async def register_planner(
     - **business_name**: Optional business/company name
     """
     # Check if email already exists
-    existing_planner = db.query(Planner).filter(Planner.email == planner_data.email).first()
+    existing_planner = (
+        db.query(Planner).filter(Planner.email == planner_data.email).first()
+    )
     if existing_planner:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
         )
-    
+
     # Check if phone already exists
-    existing_phone = db.query(Planner).filter(Planner.phone == planner_data.phone_number).first()
+    existing_phone = (
+        db.query(Planner).filter(Planner.phone == planner_data.phone_number).first()
+    )
     if existing_phone:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Phone number already registered"
+            detail="Phone number already registered",
         )
-    
+
     # Create new planner
     new_planner = Planner(
         email=planner_data.email,
@@ -103,29 +105,29 @@ async def register_planner(
         is_active=True,
         is_verified=False,  # Email verification required
         email_verified=False,
-        phone_verified=False
+        phone_verified=False,
     )
-    
+
     db.add(new_planner)
     db.commit()
     db.refresh(new_planner)
-    
+
     # Generate verification token (in production, send via email)
     verification_token = secrets.token_urlsafe(32)
     verification_tokens[verification_token] = {
         "planner_id": str(new_planner.planner_id),
-        "expires_at": datetime.utcnow() + timedelta(hours=24)
+        "expires_at": datetime.utcnow() + timedelta(hours=24),
     }
-    
+
     # Create access and refresh tokens
     access_token = create_access_token(data={"sub": str(new_planner.planner_id)})
     refresh_token = create_refresh_token(data={"sub": str(new_planner.planner_id)})
-    
+
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
-        "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     }
 
 
@@ -137,57 +139,54 @@ async def register_planner(
     responses={
         200: {"description": "Successfully authenticated"},
         401: {"description": "Invalid credentials"},
-        422: {"description": "Validation error"}
-    }
+        422: {"description": "Validation error"},
+    },
 )
-async def login(
-    credentials: PlannerLogin,
-    db: Session = Depends(get_db)
-):
+async def login(credentials: PlannerLogin, db: Session = Depends(get_db)):
     """
     Login with email and password.
-    
+
     Returns JWT access token and refresh token for authenticated requests.
-    
+
     - **email**: Registered email address
     - **password**: Account password
     """
     # Find planner by email
     planner = db.query(Planner).filter(Planner.email == credentials.email).first()
-    
+
     if not planner:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password"
+            detail="Incorrect email or password",
         )
-    
+
     # Verify password
     if not verify_password(credentials.password, planner.password_hash):  # type: ignore[arg-type]
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password"
+            detail="Incorrect email or password",
         )
-    
+
     # Check if account is active
     if planner.is_active is False:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is inactive. Please contact support."
+            detail="Account is inactive. Please contact support.",
         )
-    
+
     # Update last login time
     planner.last_login_at = datetime.utcnow()  # type: ignore[assignment]
     db.commit()
-    
+
     # Create access and refresh tokens
     access_token = create_access_token(data={"sub": str(planner.planner_id)})
     refresh_token = create_refresh_token(data={"sub": str(planner.planner_id)})
-    
+
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
-        "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     }
 
 
@@ -198,71 +197,67 @@ async def login(
     description="Get a new access token using a valid refresh token",
     responses={
         200: {"description": "Token successfully refreshed"},
-        401: {"description": "Invalid or expired refresh token"}
-    }
+        401: {"description": "Invalid or expired refresh token"},
+    },
 )
 async def refresh_token(token_data: TokenRefresh, db: Session = Depends(get_db)):
     """
     Refresh access token using refresh token.
-    
+
     Use this endpoint when the access token expires to get a new one
     without requiring the user to login again.
-    
+
     - **refresh_token**: Valid refresh token from login/register
     """
     # Check if token is blacklisted
     if token_data.refresh_token in blacklisted_tokens:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has been revoked"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked"
         )
-    
+
     try:
         # Decode refresh token
         payload = decode_token(token_data.refresh_token)
-        
+
         # Verify it's a refresh token
         if payload.get("type") != "refresh":
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token type"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type"
             )
-        
+
         planner_id = payload.get("sub")
         if not planner_id:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
             )
-        
+
         # Verify planner still exists and is active
         planner = db.query(Planner).filter(Planner.planner_id == planner_id).first()
         if not planner or planner.is_active is False:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or inactive account"
+                detail="Invalid or inactive account",
             )
-        
+
         # Create new tokens
         new_access_token = create_access_token(data={"sub": planner_id})
         new_refresh_token = create_refresh_token(data={"sub": planner_id})
-        
+
         # Blacklist old refresh token
         blacklisted_tokens.add(token_data.refresh_token)
-        
+
         return {
             "access_token": new_access_token,
             "refresh_token": new_refresh_token,
             "token_type": "bearer",
-            "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+            "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         }
-    
+
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token"
         )
 
 
@@ -273,13 +268,13 @@ async def refresh_token(token_data: TokenRefresh, db: Session = Depends(get_db))
     description="Logout current planner and invalidate tokens",
     responses={
         200: {"description": "Successfully logged out"},
-        401: {"description": "Not authenticated"}
-    }
+        401: {"description": "Not authenticated"},
+    },
 )
 async def logout(current_planner: Planner = Depends(get_current_planner)):
     """
     Logout current planner.
-    
+
     Invalidates the current access and refresh tokens.
     Requires authentication.
     """
@@ -295,52 +290,51 @@ async def logout(current_planner: Planner = Depends(get_current_planner)):
     description="Verify planner's email address using verification token",
     responses={
         200: {"description": "Email successfully verified"},
-        400: {"description": "Invalid or expired token"}
-    }
+        400: {"description": "Invalid or expired token"},
+    },
 )
 async def verify_email(verification: EmailVerification, db: Session = Depends(get_db)):
     """
     Verify planner email address.
-    
+
     Use the verification token sent to the email address during registration.
-    
+
     - **token**: Email verification token
     """
     # Check if token exists
     if verification.token not in verification_tokens:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired verification token"
+            detail="Invalid or expired verification token",
         )
-    
+
     token_data = verification_tokens[verification.token]
-    
+
     # Check if token is expired
     if datetime.utcnow() > token_data["expires_at"]:
         del verification_tokens[verification.token]
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Verification token has expired"
+            detail="Verification token has expired",
         )
-    
+
     # Get planner and verify email
-    planner = db.query(Planner).filter(
-        Planner.planner_id == token_data["planner_id"]
-    ).first()
-    
+    planner = (
+        db.query(Planner).filter(Planner.planner_id == token_data["planner_id"]).first()
+    )
+
     if not planner:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Planner not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Planner not found"
         )
-    
+
     planner.email_verified = True  # type: ignore[assignment]
     planner.is_verified = True  # type: ignore[assignment]
     db.commit()
-    
+
     # Remove used token
     del verification_tokens[verification.token]
-    
+
     return {"message": "Email successfully verified"}
 
 
@@ -351,35 +345,35 @@ async def verify_email(verification: EmailVerification, db: Session = Depends(ge
     description="Request a password reset link to be sent to email",
     responses={
         200: {"description": "Password reset email sent"},
-        404: {"description": "Email not found"}
-    }
+        404: {"description": "Email not found"},
+    },
 )
 async def forgot_password(reset_request: PasswordReset, db: Session = Depends(get_db)):
     """
     Request password reset.
-    
+
     Sends a password reset link to the provided email address if it exists.
-    
+
     - **email**: Registered email address
     """
     # Find planner by email
     planner = db.query(Planner).filter(Planner.email == reset_request.email).first()
-    
+
     # Always return success to prevent email enumeration
     if not planner:
         return {"message": "If the email exists, a password reset link has been sent"}
-    
+
     # Generate reset token
     reset_token = secrets.token_urlsafe(32)
     reset_tokens[reset_token] = {
         "planner_id": str(planner.planner_id),
-        "expires_at": datetime.utcnow() + timedelta(hours=1)
+        "expires_at": datetime.utcnow() + timedelta(hours=1),
     }
-    
+
     # In production, send email with reset link
     # For now, just log it (in development, you'd see this in console)
     print(f"Password reset token for {planner.email}: {reset_token}")
-    
+
     return {"message": "If the email exists, a password reset link has been sent"}
 
 
@@ -390,15 +384,17 @@ async def forgot_password(reset_request: PasswordReset, db: Session = Depends(ge
     description="Reset password using the token from reset email",
     responses={
         200: {"description": "Password successfully reset"},
-        400: {"description": "Invalid or expired token"}
-    }
+        400: {"description": "Invalid or expired token"},
+    },
 )
-async def reset_password(reset_data: PasswordResetConfirm, db: Session = Depends(get_db)):
+async def reset_password(
+    reset_data: PasswordResetConfirm, db: Session = Depends(get_db)
+):
     """
     Reset password with token.
-    
+
     Use the token received in the password reset email to set a new password.
-    
+
     - **token**: Password reset token from email
     - **new_password**: New password (minimum 8 characters)
     """
@@ -406,37 +402,35 @@ async def reset_password(reset_data: PasswordResetConfirm, db: Session = Depends
     if reset_data.token not in reset_tokens:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired reset token"
+            detail="Invalid or expired reset token",
         )
-    
+
     token_data = reset_tokens[reset_data.token]
-    
+
     # Check if token is expired
     if datetime.utcnow() > token_data["expires_at"]:
         del reset_tokens[reset_data.token]
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Reset token has expired"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Reset token has expired"
         )
-    
+
     # Get planner and update password
-    planner = db.query(Planner).filter(
-        Planner.planner_id == token_data["planner_id"]
-    ).first()
-    
+    planner = (
+        db.query(Planner).filter(Planner.planner_id == token_data["planner_id"]).first()
+    )
+
     if not planner:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Planner not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Planner not found"
         )
-    
+
     # Update password
     planner.password_hash = get_password_hash(reset_data.new_password)  # type: ignore[assignment]
     db.commit()
-    
+
     # Remove used token
     del reset_tokens[reset_data.token]
-    
+
     return {"message": "Password successfully reset"}
 
 
@@ -447,15 +441,15 @@ async def reset_password(reset_data: PasswordResetConfirm, db: Session = Depends
     description="Get the currently authenticated planner's profile information",
     responses={
         200: {"description": "Planner profile retrieved"},
-        401: {"description": "Not authenticated"}
-    }
+        401: {"description": "Not authenticated"},
+    },
 )
 async def get_current_planner_profile(
-    current_planner: Planner = Depends(get_current_planner)
+    current_planner: Planner = Depends(get_current_planner),
 ):
     """
     Get current planner profile.
-    
+
     Returns the profile information of the currently authenticated planner.
     Requires authentication.
     """
@@ -466,7 +460,8 @@ async def get_current_planner_profile(
         "phone_number": current_planner.phone,
         "business_name": current_planner.company_name,
         "is_verified": current_planner.is_verified,
-        "created_at": current_planner.created_at
+        "created_at": current_planner.created_at,
     }
+
 
 # Made with Bob

@@ -13,17 +13,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Import the Base from our models
 from app.database import Base
-from app.config import settings
 
 # Import all models so Alembic can detect them
-from app.models.planner import Planner
-from app.models.event import Event
-from app.models.guest import Guest
-from app.models.conversation import Conversation
-from app.models.faq import FAQ
-from app.models.schedule import Schedule
-from app.models.broadcast import Broadcast
-from app.models.support_request import SupportRequest
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -84,7 +75,7 @@ def run_migrations_online() -> None:
     """
     configuration = config.get_section(config.config_ini_section)
     configuration["sqlalchemy.url"] = get_url()
-    
+
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",

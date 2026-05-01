@@ -1,6 +1,7 @@
 """
 FastAPI Application Entry Point
 """
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -18,7 +19,7 @@ from app.api.v1 import (
     broadcasts,
     support_requests,
     analytics,
-    webhooks
+    webhooks,
 )
 from app.middleware.tenant_isolation import TenantIsolationMiddleware
 from app.middleware.rate_limiting import RateLimitMiddleware
@@ -27,7 +28,7 @@ from app.middleware.logging import LoggingMiddleware
 # Configure logging
 logging.basicConfig(
     level=logging.INFO if settings.ENVIRONMENT == "production" else logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -41,14 +42,14 @@ async def lifespan(app: FastAPI):
     logger.info("Starting Eventsarthi Backend...")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"Debug Mode: {settings.DEBUG}")
-    
+
     # Create database tables (in production, use Alembic migrations)
     if settings.ENVIRONMENT == "development":
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down Eventsarthi Backend...")
 
@@ -165,7 +166,7 @@ app = FastAPI(
         "showExtensions": True,
         "showCommonExtensions": True,
         "syntaxHighlight.theme": "monokai",
-    }
+    },
 )
 
 # CORS Configuration
@@ -179,7 +180,9 @@ app.add_middleware(
 
 # Custom Middleware
 app.add_middleware(LoggingMiddleware)
-app.add_middleware(RateLimitMiddleware, requests_per_minute=settings.RATE_LIMIT_PER_MINUTE)
+app.add_middleware(
+    RateLimitMiddleware, requests_per_minute=settings.RATE_LIMIT_PER_MINUTE
+)
 app.add_middleware(TenantIsolationMiddleware)
 
 
@@ -193,8 +196,10 @@ async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content={
-            "detail": "Internal server error" if settings.ENVIRONMENT == "production" else str(exc)
-        }
+            "detail": "Internal server error"
+            if settings.ENVIRONMENT == "production"
+            else str(exc)
+        },
     )
 
 
@@ -207,7 +212,7 @@ async def health_check():
     return {
         "status": "healthy",
         "environment": settings.ENVIRONMENT,
-        "version": "1.0.0"
+        "version": "1.0.0",
     }
 
 
@@ -221,7 +226,7 @@ async def root():
         "message": "Welcome to Eventsarthi API",
         "version": "1.0.0",
         "docs": "/docs" if settings.DEBUG else "Documentation disabled in production",
-        "health": "/health"
+        "health": "/health",
     }
 
 
@@ -230,20 +235,22 @@ app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(planners.router, prefix="/api/v1/planners", tags=["Planners"])
 app.include_router(events.router, prefix="/api/v1/events", tags=["Events"])
 app.include_router(guests.router, prefix="/api/v1/guests", tags=["Guests"])
-app.include_router(conversations.router, prefix="/api/v1/conversations", tags=["Conversations"])
+app.include_router(
+    conversations.router, prefix="/api/v1/conversations", tags=["Conversations"]
+)
 app.include_router(broadcasts.router, prefix="/api/v1/broadcasts", tags=["Broadcasts"])
-app.include_router(support_requests.router, prefix="/api/v1/support-requests", tags=["Support Requests"])
+app.include_router(
+    support_requests.router,
+    prefix="/api/v1/support-requests",
+    tags=["Support Requests"],
+)
 app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["Analytics"])
 app.include_router(webhooks.router, prefix="/api/v1/webhooks", tags=["Webhooks"])
 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=settings.DEBUG
-    )
+
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=settings.DEBUG)
 
 # Made with Bob

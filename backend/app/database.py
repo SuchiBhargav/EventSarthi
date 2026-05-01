@@ -1,6 +1,7 @@
 """
 Database Configuration and Session Management
 """
+
 from typing import Generator
 from sqlalchemy import create_engine, event
 from sqlalchemy.ext.declarative import declarative_base
@@ -50,7 +51,7 @@ def get_db() -> Generator[Session, None, None]:
     """
     Dependency function to get database session
     Yields a database session and ensures it's closed after use
-    
+
     Usage:
         @app.get("/items")
         def read_items(db: Session = Depends(get_db)):
@@ -80,9 +81,10 @@ def drop_db():
     """
     if settings.ENVIRONMENT == "production":
         raise RuntimeError("Cannot drop database in production environment")
-    
+
     logger.warning("Dropping all database tables...")
     Base.metadata.drop_all(bind=engine)
     logger.warning("All tables dropped")
+
 
 # Made with Bob

@@ -2,6 +2,7 @@
 Database Models
 SQLAlchemy ORM models for the application
 """
+
 from app.models.planner import Planner
 from app.models.event import Event
 from app.models.guest import Guest

@@ -2,6 +2,7 @@
 Pydantic Schemas
 Request and response models for API endpoints
 """
+
 from app.schemas.auth import (
     PlannerRegister,
     PlannerLogin,

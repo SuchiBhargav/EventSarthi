@@ -10,7 +10,7 @@ EVENT_TYPES = [
     "anniversary",
     "conference",
     "party",
-    "other"
+    "other",
 ]
 
 # Relation Types
@@ -22,25 +22,14 @@ RELATION_TYPES = [
     "colleague",
     "family",
     "vip",
-    "other"
+    "other",
 ]
 
 # Food Preferences
-FOOD_PREFERENCES = [
-    "veg",
-    "non-veg",
-    "vegan",
-    "jain",
-    "no-preference"
-]
+FOOD_PREFERENCES = ["veg", "non-veg", "vegan", "jain", "no-preference"]
 
 # VIP Levels
-VIP_LEVELS = [
-    "regular",
-    "vip",
-    "close",
-    "casual"
-]
+VIP_LEVELS = ["regular", "vip", "close", "casual"]
 
 # Support Request Categories
 REQUEST_CATEGORIES = [
@@ -50,29 +39,24 @@ REQUEST_CATEGORIES = [
     "medical",
     "accommodation",
     "venue_query",
-    "unknown"
+    "unknown",
 ]
 
 # Request Priorities
-REQUEST_PRIORITIES = [
-    "low",
-    "normal",
-    "high",
-    "urgent"
-]
+REQUEST_PRIORITIES = ["low", "normal", "high", "urgent"]
 
 # Languages
 SUPPORTED_LANGUAGES = [
     "en",  # English
     "hi",  # Hindi
-    "kn"   # Kannada
+    "kn",  # Kannada
 ]
 
 # Message Templates
 GREETING_TEMPLATES = {
     "en": "Hello {name}! Welcome to {event_name}.",
     "hi": "नमस्ते {name}! {event_name} में आपका स्वागत है।",
-    "kn": "ನಮಸ್ಕಾರ {name}! {event_name} ಗೆ ಸ್ವಾಗತ."
+    "kn": "ನಮಸ್ಕಾರ {name}! {event_name} ಗೆ ಸ್ವಾಗತ.",
 }
 
 # Escalation Keywords
@@ -84,7 +68,7 @@ ESCALATION_KEYWORDS = [
     "issue",
     "complaint",
     "angry",
-    "disappointed"
+    "disappointed",
 ]
 
 # AI Intent Categories
@@ -97,7 +81,7 @@ AI_INTENTS = [
     "transport_request",
     "help_request",
     "feedback",
-    "unknown"
+    "unknown",
 ]
 
 # Made with Bob
