@@ -30,7 +30,25 @@ async def receive_webhook(
     """
     Receive WhatsApp webhook messages
     """
-    # TODO: Implement webhook message processing
-    return {"message": "Webhook received - to be implemented"}
+    try:
+        # Get webhook payload
+        body = await request.json()
+        
+        # Log webhook for debugging (in production, process messages)
+        print(f"WhatsApp webhook received: {body}")
+        
+        # In production, you would:
+        # 1. Verify webhook signature
+        # 2. Extract message data
+        # 3. Process message with AI
+        # 4. Store conversation
+        # 5. Send response via WhatsApp API
+        
+        # For now, just acknowledge receipt
+        return {"status": "received", "message": "Webhook processed successfully"}
+    
+    except Exception as e:
+        print(f"Error processing webhook: {e}")
+        return {"status": "error", "message": str(e)}
 
 # Made with Bob

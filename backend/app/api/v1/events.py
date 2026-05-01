@@ -4,12 +4,15 @@ CRUD operations for events
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import Optional
+from datetime import datetime
 
 from app.database import get_db
 from app.dependencies import get_current_planner, verify_event_access
 from app.models.planner import Planner
-from app.models.event import Event
+from app.models.event import Event, EventStatus
+from app.models.guest import Guest
 from app.schemas import (
     EventCreate,
     EventUpdate,
@@ -52,8 +55,39 @@ async def create_event(
     - **expected_guests**: Expected number of guests (minimum 1)
     - **budget**: Optional event budget
     """
-    # TODO: Implement event creation
-    return {"message": "Create event endpoint - to be implemented"}
+    # Create new event
+    new_event = Event(
+        planner_id=current_planner.planner_id,
+        event_name=event_data.name,
+        event_type=event_data.event_type.value,
+        description=event_data.description,
+        start_date=event_data.event_date,
+        end_date=event_data.event_date,  # Can be updated later
+        venue_name=event_data.venue,
+        status=EventStatus.DRAFT,
+        total_guests=0,
+        guests_checked_in=0
+    )
+    
+    db.add(new_event)
+    db.commit()
+    db.refresh(new_event)
+    
+    return {
+        "id": str(new_event.event_id),
+        "planner_id": str(new_event.planner_id),
+        "name": new_event.event_name,
+        "event_type": event_data.event_type,
+        "description": new_event.description,
+        "event_date": new_event.start_date,
+        "venue": new_event.venue_name,
+        "expected_guests": event_data.expected_guests,
+        "confirmed_guests": 0,
+        "budget": event_data.budget,
+        "status": new_event.status.value,
+        "created_at": new_event.created_at,
+        "updated_at": new_event.updated_at
+    }
 
 
 @router.get(
@@ -84,8 +118,47 @@ async def list_events(
     - **status**: Filter by event status (draft, planning, confirmed, etc.)
     - **event_type**: Filter by event type (wedding, birthday, etc.)
     """
-    # TODO: Implement event listing
-    return {"message": "List events endpoint - to be implemented"}
+    # Build query with tenant isolation
+    query = db.query(Event).filter(Event.planner_id == current_planner.planner_id)
+    
+    # Apply filters
+    if status:
+        query = query.filter(Event.status == status.upper())
+    if event_type:
+        query = query.filter(Event.event_type == event_type)
+    
+    # Get total count
+    total = query.count()
+    
+    # Apply pagination
+    skip = (page - 1) * page_size
+    events = query.order_by(Event.created_at.desc()).offset(skip).limit(page_size).all()
+    
+    # Format response
+    event_list = []
+    for event in events:
+        event_list.append({
+            "id": str(event.event_id),
+            "planner_id": str(event.planner_id),
+            "name": event.event_name,
+            "event_type": event.event_type,
+            "description": event.description,
+            "event_date": event.start_date,
+            "venue": event.venue_name,
+            "expected_guests": event.total_guests,
+            "confirmed_guests": event.guests_checked_in,
+            "budget": None,
+            "status": event.status.value,
+            "created_at": event.created_at,
+            "updated_at": event.updated_at
+        })
+    
+    return {
+        "events": event_list,
+        "total": total,
+        "page": page,
+        "page_size": page_size
+    }
 
 
 @router.get(
@@ -108,8 +181,35 @@ async def get_event_stats(
     Returns aggregated statistics about the planner's events including
     total events, upcoming events, completed events, and total guests.
     """
-    # TODO: Implement event stats
-    return {"message": "Event stats endpoint - to be implemented"}
+    # Get total events
+    total_events = db.query(Event).filter(
+        Event.planner_id == current_planner.planner_id
+    ).count()
+    
+    # Get upcoming events (not completed/archived)
+    upcoming_events = db.query(Event).filter(
+        Event.planner_id == current_planner.planner_id,
+        Event.status.in_([EventStatus.DRAFT, EventStatus.ACTIVE]),
+        Event.start_date >= datetime.utcnow()
+    ).count()
+    
+    # Get completed events
+    completed_events = db.query(Event).filter(
+        Event.planner_id == current_planner.planner_id,
+        Event.status == EventStatus.COMPLETED
+    ).count()
+    
+    # Get total guests across all events
+    total_guests = db.query(func.sum(Event.total_guests)).filter(
+        Event.planner_id == current_planner.planner_id
+    ).scalar() or 0
+    
+    return {
+        "total_events": total_events,
+        "upcoming_events": upcoming_events,
+        "completed_events": completed_events,
+        "total_guests": int(total_guests)
+    }
 
 
 @router.get(
@@ -137,8 +237,21 @@ async def get_event(
     
     - **event_id**: Unique event identifier
     """
-    # TODO: Implement get event
-    return {"message": "Get event endpoint - to be implemented"}
+    return {
+        "id": str(event.event_id),
+        "planner_id": str(event.planner_id),
+        "name": event.event_name,
+        "event_type": event.event_type,
+        "description": event.description,
+        "event_date": event.start_date,
+        "venue": event.venue_name,
+        "expected_guests": event.total_guests,
+        "confirmed_guests": event.guests_checked_in,
+        "budget": None,
+        "status": event.status.value,
+        "created_at": event.created_at,
+        "updated_at": event.updated_at
+    }
 
 
 @router.put(
@@ -169,8 +282,42 @@ async def update_event(
     - **event_id**: Unique event identifier
     - All fields are optional - only provided fields will be updated
     """
-    # TODO: Implement event update
-    return {"message": "Update event endpoint - to be implemented"}
+    # Update fields if provided
+    if event_data.name is not None:
+        event.event_name = event_data.name  # type: ignore[assignment]
+    if event_data.event_type is not None:
+        event.event_type = event_data.event_type.value  # type: ignore[assignment]
+    if event_data.description is not None:
+        event.description = event_data.description  # type: ignore[assignment]
+    if event_data.event_date is not None:
+        event.start_date = event_data.event_date  # type: ignore[assignment]
+        event.end_date = event_data.event_date  # type: ignore[assignment]
+    if event_data.venue is not None:
+        event.venue_name = event_data.venue  # type: ignore[assignment]
+    if event_data.expected_guests is not None:
+        event.total_guests = event_data.expected_guests  # type: ignore[assignment]
+    if event_data.status is not None:
+        event.status = EventStatus[event_data.status.value.upper()]  # type: ignore[assignment]
+    
+    event.updated_at = datetime.utcnow()  # type: ignore[assignment]
+    db.commit()
+    db.refresh(event)
+    
+    return {
+        "id": str(event.event_id),
+        "planner_id": str(event.planner_id),
+        "name": event.event_name,
+        "event_type": event.event_type,
+        "description": event.description,
+        "event_date": event.start_date,
+        "venue": event.venue_name,
+        "expected_guests": event.total_guests,
+        "confirmed_guests": event.guests_checked_in,
+        "budget": event_data.budget,
+        "status": event.status.value,
+        "created_at": event.created_at,
+        "updated_at": event.updated_at
+    }
 
 
 @router.delete(
@@ -199,8 +346,16 @@ async def delete_event(
     
     - **event_id**: Unique event identifier
     """
-    # TODO: Implement event deletion
-    return {"message": "Delete event endpoint - to be implemented"}
+    # Mark as deleted (soft delete)
+    event.status = EventStatus.DELETED  # type: ignore[assignment]
+    event.deleted_at = datetime.utcnow()  # type: ignore[assignment]
+    db.commit()
+    
+    # Or hard delete (uncomment if preferred):
+    # db.delete(event)
+    # db.commit()
+    
+    return {"message": "Event deleted successfully"}
 
 
 @router.post(
@@ -229,7 +384,34 @@ async def complete_event(
     
     - **event_id**: Unique event identifier
     """
-    # TODO: Implement event completion
-    return {"message": "Complete event endpoint - to be implemented"}
+    # Check if event can be completed
+    if event.status.value == EventStatus.COMPLETED.value:  # type: ignore[attr-defined]
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Event is already completed"
+        )
+    
+    # Mark as completed
+    event.status = EventStatus.COMPLETED  # type: ignore[assignment]
+    event.completed_at = datetime.utcnow()  # type: ignore[assignment]
+    event.updated_at = datetime.utcnow()  # type: ignore[assignment]
+    db.commit()
+    db.refresh(event)
+    
+    return {
+        "id": str(event.event_id),
+        "planner_id": str(event.planner_id),
+        "name": event.event_name,
+        "event_type": event.event_type,
+        "description": event.description,
+        "event_date": event.start_date,
+        "venue": event.venue_name,
+        "expected_guests": event.total_guests,
+        "confirmed_guests": event.guests_checked_in,
+        "budget": None,
+        "status": event.status.value,
+        "created_at": event.created_at,
+        "updated_at": event.updated_at
+    }
 
 # Made with Bob

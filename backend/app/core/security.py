@@ -5,6 +5,7 @@ Password hashing, JWT token generation, etc.
 from datetime import datetime, timedelta
 from typing import Optional
 from passlib.context import CryptContext
+from fastapi import HTTPException
 import jwt
 
 from app.config import settings
@@ -51,6 +52,40 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 def create_refresh_token(data: dict) -> str:
     """
-    Create JWT refresh token
+    Create JWT refresh token with longer expiration
     """
     to_encode = data.copy()
+    
+    expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    to_encode.update({"exp": expire, "type": "refresh"})
+    
+    encoded_jwt = jwt.encode(
+        to_encode,
+        settings.JWT_SECRET_KEY,
+        algorithm=settings.JWT_ALGORITHM
+    )
+    
+    return encoded_jwt
+
+
+def decode_token(token: str) -> dict:
+    """
+    Decode and validate JWT token
+    """
+    try:
+        payload = jwt.decode(
+            token,
+            settings.JWT_SECRET_KEY,
+            algorithms=[settings.JWT_ALGORITHM]
+        )
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=401,
+            detail="Token has expired"
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token"
+        )

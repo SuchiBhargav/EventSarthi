@@ -4,7 +4,9 @@ CRUD operations for event guests
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func, or_
 from typing import Optional
+from datetime import datetime
 
 from app.database import get_db
 from app.dependencies import get_current_planner, verify_event_access
@@ -19,6 +21,7 @@ from app.schemas import (
     GuestStats,
     BulkGuestImport,
     MessageResponse,
+    RSVPStatus,
 )
 
 router = APIRouter()
@@ -57,8 +60,54 @@ async def add_guest(
     - **dietary_restrictions**: Optional dietary preferences
     - **notes**: Optional additional notes
     """
-    # TODO: Implement add guest
-    return {"message": "Add guest endpoint - to be implemented"}
+    # Check if guest with same phone already exists for this event
+    existing_guest = db.query(Guest).filter(
+        Guest.event_id == event.event_id,
+        Guest.phone == guest_data.phone_number
+    ).first()
+    
+    if existing_guest:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Guest with this phone number already exists for this event"
+        )
+    
+    # Create new guest
+    new_guest = Guest(
+        event_id=event.event_id,
+        planner_id=event.planner_id,
+        name=guest_data.name,
+        phone=guest_data.phone_number,
+        email=guest_data.email,
+        plus_ones=1 if guest_data.plus_one else 0,
+        dietary_restrictions=guest_data.dietary_restrictions,
+        notes=guest_data.notes,
+        is_attending=True,
+        checked_in=False
+    )
+    
+    db.add(new_guest)
+    
+    # Update event guest count
+    event.total_guests = db.query(Guest).filter(Guest.event_id == event.event_id).count() + 1  # type: ignore[assignment]
+    
+    db.commit()
+    db.refresh(new_guest)
+    
+    return {
+        "id": str(new_guest.guest_id),
+        "event_id": str(new_guest.event_id),
+        "name": new_guest.name,
+        "phone_number": new_guest.phone,
+        "email": new_guest.email,
+        "plus_one": new_guest.plus_ones > 0,
+        "dietary_restrictions": new_guest.dietary_restrictions,
+        "notes": new_guest.notes,
+        "rsvp_status": RSVPStatus.PENDING,
+        "rsvp_date": None,
+        "created_at": new_guest.created_at,
+        "updated_at": new_guest.updated_at
+    }
 
 
 @router.get(
@@ -93,8 +142,50 @@ async def list_guests(
     - **rsvp_status**: Filter by RSVP status (pending, confirmed, declined, maybe)
     - **search**: Search guests by name or phone number
     """
-    # TODO: Implement list guests
-    return {"message": "List guests endpoint - to be implemented"}
+    # Build query
+    query = db.query(Guest).filter(Guest.event_id == event.event_id)
+    
+    # Apply search filter
+    if search:
+        query = query.filter(
+            or_(
+                Guest.name.ilike(f"%{search}%"),
+                Guest.phone.ilike(f"%{search}%")
+            )
+        )
+    
+    # Get total count
+    total = query.count()
+    
+    # Apply pagination
+    skip = (page - 1) * page_size
+    guests = query.order_by(Guest.created_at.desc()).offset(skip).limit(page_size).all()
+    
+    # Format response
+    guest_list = []
+    for guest in guests:
+        is_attending = guest.is_attending is True
+        guest_list.append({
+            "id": str(guest.guest_id),
+            "event_id": str(guest.event_id),
+            "name": guest.name,
+            "phone_number": guest.phone,
+            "email": guest.email,
+            "plus_one": guest.plus_ones > 0,
+            "dietary_restrictions": guest.dietary_restrictions,
+            "notes": guest.notes,
+            "rsvp_status": RSVPStatus.CONFIRMED if is_attending else RSVPStatus.PENDING,
+            "rsvp_date": guest.updated_at if is_attending else None,
+            "created_at": guest.created_at,
+            "updated_at": guest.updated_at
+        })
+    
+    return {
+        "guests": guest_list,
+        "total": total,
+        "page": page,
+        "page_size": page_size
+    }
 
 
 @router.get(
@@ -122,8 +213,27 @@ async def get_guest_stats(
     
     - **event_id**: Event identifier
     """
-    # TODO: Implement guest stats
-    return {"message": "Guest stats endpoint - to be implemented"}
+    total_guests = db.query(Guest).filter(Guest.event_id == event.event_id).count()
+    
+    confirmed = db.query(Guest).filter(
+        Guest.event_id == event.event_id,
+        Guest.is_attending == True
+    ).count()
+    
+    declined = db.query(Guest).filter(
+        Guest.event_id == event.event_id,
+        Guest.is_attending == False
+    ).count()
+    
+    pending = total_guests - confirmed - declined
+    
+    return {
+        "total_guests": total_guests,
+        "confirmed": confirmed,
+        "declined": declined,
+        "pending": pending,
+        "maybe": 0
+    }
 
 
 @router.get(
@@ -152,8 +262,32 @@ async def get_guest(
     - **event_id**: Event identifier
     - **guest_id**: Guest identifier
     """
-    # TODO: Implement get guest
-    return {"message": "Get guest endpoint - to be implemented"}
+    guest = db.query(Guest).filter(
+        Guest.guest_id == guest_id,
+        Guest.event_id == event.event_id
+    ).first()
+    
+    if not guest:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Guest not found"
+        )
+    
+    is_attending = guest.is_attending is True
+    return {
+        "id": str(guest.guest_id),
+        "event_id": str(guest.event_id),
+        "name": guest.name,
+        "phone_number": guest.phone,
+        "email": guest.email,
+        "plus_one": guest.plus_ones > 0,
+        "dietary_restrictions": guest.dietary_restrictions,
+        "notes": guest.notes,
+        "rsvp_status": RSVPStatus.CONFIRMED if is_attending else RSVPStatus.PENDING,
+        "rsvp_date": guest.updated_at if is_attending else None,
+        "created_at": guest.created_at,
+        "updated_at": guest.updated_at
+    }
 
 
 @router.put(
@@ -185,8 +319,52 @@ async def update_guest(
     - **event_id**: Event identifier
     - **guest_id**: Guest identifier
     """
-    # TODO: Implement update guest
-    return {"message": "Update guest endpoint - to be implemented"}
+    guest = db.query(Guest).filter(
+        Guest.guest_id == guest_id,
+        Guest.event_id == event.event_id
+    ).first()
+    
+    if not guest:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Guest not found"
+        )
+    
+    # Update fields if provided
+    if guest_data.name is not None:
+        guest.name = guest_data.name  # type: ignore[assignment]
+    if guest_data.phone_number is not None:
+        guest.phone = guest_data.phone_number  # type: ignore[assignment]
+    if guest_data.email is not None:
+        guest.email = guest_data.email  # type: ignore[assignment]
+    if guest_data.plus_one is not None:
+        guest.plus_ones = 1 if guest_data.plus_one else 0  # type: ignore[assignment]
+    if guest_data.dietary_restrictions is not None:
+        guest.dietary_restrictions = guest_data.dietary_restrictions  # type: ignore[assignment]
+    if guest_data.notes is not None:
+        guest.notes = guest_data.notes  # type: ignore[assignment]
+    if guest_data.rsvp_status is not None:
+        guest.is_attending = guest_data.rsvp_status == RSVPStatus.CONFIRMED  # type: ignore[assignment]
+    
+    guest.updated_at = datetime.utcnow()  # type: ignore[assignment]
+    db.commit()
+    db.refresh(guest)
+    
+    is_attending = guest.is_attending is True
+    return {
+        "id": str(guest.guest_id),
+        "event_id": str(guest.event_id),
+        "name": guest.name,
+        "phone_number": guest.phone,
+        "email": guest.email,
+        "plus_one": guest.plus_ones > 0,
+        "dietary_restrictions": guest.dietary_restrictions,
+        "notes": guest.notes,
+        "rsvp_status": RSVPStatus.CONFIRMED if is_attending else RSVPStatus.PENDING,
+        "rsvp_date": guest.updated_at if is_attending else None,
+        "created_at": guest.created_at,
+        "updated_at": guest.updated_at
+    }
 
 
 @router.delete(
@@ -216,8 +394,25 @@ async def delete_guest(
     - **event_id**: Event identifier
     - **guest_id**: Guest identifier
     """
-    # TODO: Implement delete guest
-    return {"message": "Delete guest endpoint - to be implemented"}
+    guest = db.query(Guest).filter(
+        Guest.guest_id == guest_id,
+        Guest.event_id == event.event_id
+    ).first()
+    
+    if not guest:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Guest not found"
+        )
+    
+    db.delete(guest)
+    
+    # Update event guest count
+    event.total_guests = db.query(Guest).filter(Guest.event_id == event.event_id).count() - 1  # type: ignore[assignment]
+    
+    db.commit()
+    
+    return {"message": "Guest deleted successfully"}
 
 
 @router.post(
@@ -248,7 +443,44 @@ async def import_guests(
     - **event_id**: Event identifier
     - **guests**: List of guest data to import
     """
-    # TODO: Implement bulk import
-    return {"message": "Import guests endpoint - to be implemented"}
+    imported_count = 0
+    skipped_count = 0
+    
+    for guest_data in import_data.guests:
+        # Check if guest already exists
+        existing = db.query(Guest).filter(
+            Guest.event_id == event.event_id,
+            Guest.phone == guest_data.phone_number
+        ).first()
+        
+        if existing:
+            skipped_count += 1
+            continue
+        
+        # Create new guest
+        new_guest = Guest(
+            event_id=event.event_id,
+            planner_id=event.planner_id,
+            name=guest_data.name,
+            phone=guest_data.phone_number,
+            email=guest_data.email,
+            plus_ones=1 if guest_data.plus_one else 0,
+            dietary_restrictions=guest_data.dietary_restrictions,
+            notes=guest_data.notes,
+            is_attending=True,
+            checked_in=False
+        )
+        
+        db.add(new_guest)
+        imported_count += 1
+    
+    # Update event guest count
+    event.total_guests = db.query(Guest).filter(Guest.event_id == event.event_id).count() + imported_count  # type: ignore[assignment]
+    
+    db.commit()
+    
+    return {
+        "message": f"Successfully imported {imported_count} guests. Skipped {skipped_count} duplicates."
+    }
 
 # Made with Bob
