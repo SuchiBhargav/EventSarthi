@@ -634,7 +634,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](docs/CONTRIBUTING.md) for
 ### NEW REGISTRATION PAGE
 ![alt text](<REGISTRATION_PAGE.png>)
 
-###HOME PAGE
+### HOME PAGE
 ![alt text](<HOME_PAGE.png>)
 
 ---
