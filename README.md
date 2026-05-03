@@ -629,13 +629,13 @@ We welcome contributions! Please see [CONTRIBUTING.md](docs/CONTRIBUTING.md) for
 
 
 ### LOGIN PAGE
-![alt text](<Screenshot 2026-05-03 at 8.55.24 AM.png>)
+![alt text](<LOGIN_PAGE.png>)
 
 ### NEW REGISTRATION PAGE
-![alt text](image.png)
+![alt text](<REGISTRATION_PAGE.png>)
 
 ###HOME PAGE
-![alt text](image.png)
+![alt text](<HOME_PAGE.png>)
 
 ---
 **Built with ❤️ for event planners and their guests**
