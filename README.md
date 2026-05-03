@@ -302,7 +302,7 @@ Eventsarthi/
 6. **Start postgres and Redis**
    open -a "Docker 2"
    docker-compose up -d postgres redis
-   
+
 7. **Run the application**
    ```bash
    uvicorn app.main:app --reload
@@ -615,10 +615,6 @@ We welcome contributions! Please see [CONTRIBUTING.md](docs/CONTRIBUTING.md) for
 - Use type hints
 - Add docstrings to functions
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 📞 Support
 
 - **Email**: support@eventsarthi.com
@@ -630,7 +626,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - FastAPI for the excellent web framework
 - OpenAI for AI capabilities
 - Meta for WhatsApp Cloud API
-- Flutter team for the mobile framework
+
 
 ### LOGIN PAGE
 ![alt text](<Screenshot 2026-05-03 at 8.55.24 AM.png>)
