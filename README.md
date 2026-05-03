@@ -632,7 +632,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](docs/CONTRIBUTING.md) for
 ![alt text](<Screenshot 2026-05-03 at 8.55.24 AM.png>)
 
 ### NEW REGISTRATION PAGE
-![alt text](<Screenshot 2026-05-03 at 9.03.59 AM.png>)
+![alt text](image.png)
 
 ###HOME PAGE
 ![alt text](image.png)
