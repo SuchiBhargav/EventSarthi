@@ -628,3 +628,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Built with ❤️ for event planners and their guests**
+
+### LOGIN PAGE
+![alt text](<Screenshot 2026-05-03 at 8.55.24 AM.png>)
+
+### NEW REGISTRATION PAGE
+![alt text](<Screenshot 2026-05-03 at 9.03.59 AM.png>)
+
+### HOME PAGE
+![alt text](<Screenshot 2026-05-03 at 9.06.02 AM-1.png>)
