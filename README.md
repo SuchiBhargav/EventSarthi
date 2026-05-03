@@ -635,5 +635,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### NEW REGISTRATION PAGE
 ![alt text](<Screenshot 2026-05-03 at 9.03.59 AM.png>)
 
-### HOME PAGE
-![alt text](<Screenshot 2026-05-03 at 9.06.02 AM-1.png>)
+###HOME PAGE
+![alt text](image.png)
