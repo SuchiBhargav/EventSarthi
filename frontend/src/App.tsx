@@ -7,7 +7,11 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import LoginForm from '@/components/auth/LoginForm';
 import RegisterForm from '@/components/auth/RegisterForm';
 import Dashboard from '@/pages/Dashboard';
+import Events from '@/pages/Events';
+import EventCreate from '@/pages/EventCreate';
+import Guests from '@/pages/Guests';
 import GuestManagement from '@/pages/GuestManagement';
+import Documents from '@/pages/Documents';
 import FAQManagement from '@/pages/FAQManagement';
 
 // Protected Route Component
@@ -43,10 +47,42 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/events"
+        element={
+          <ProtectedRoute>
+            <Events />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events/create"
+        element={
+          <ProtectedRoute>
+            <EventCreate />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/guests"
+        element={
+          <ProtectedRoute>
+            <Guests />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/events/:eventId/guests"
         element={
           <ProtectedRoute>
             <GuestManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/documents"
+        element={
+          <ProtectedRoute>
+            <Documents />
           </ProtectedRoute>
         }
       />
