@@ -299,14 +299,21 @@ Eventsarthi/
    alembic upgrade head
    python scripts/seed_data.py  # Optional: seed test data
    ```
-
-6. **Run the application**
+6. **Start postgres and Redis**
+   open -a "Docker 2"
+   docker-compose up -d postgres redis
+   
+7. **Run the application**
    ```bash
    uvicorn app.main:app --reload
    ```
 
    API will be available at `http://localhost:8000`
    API docs at `http://localhost:8000/docs`
+
+8. **Run the frontent**
+   npm run dev
+
 
 ### Environment Variables
 
@@ -625,10 +632,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Meta for WhatsApp Cloud API
 - Flutter team for the mobile framework
 
----
-
-**Built with ❤️ for event planners and their guests**
-
 ### LOGIN PAGE
 ![alt text](<Screenshot 2026-05-03 at 8.55.24 AM.png>)
 
@@ -637,3 +640,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ###HOME PAGE
 ![alt text](image.png)
+
+---
+**Built with ❤️ for event planners and their guests**
