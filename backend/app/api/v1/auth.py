@@ -144,20 +144,20 @@ async def register_planner(
 )
 async def login(credentials: PlannerLogin, db: Session = Depends(get_db)):
     """
-    Login with email and password.
+    Login with phone number and password.
 
     Returns JWT access token and refresh token for authenticated requests.
 
-    - **email**: Registered email address
+    - **phone**: Registered phone number
     - **password**: Account password
     """
-    # Find planner by email
-    planner = db.query(Planner).filter(Planner.email == credentials.email).first()
+    # Find planner by phone
+    planner = db.query(Planner).filter(Planner.phone == credentials.phone).first()
 
     if not planner:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Incorrect phone number or password",
         )
 
     # Verify password

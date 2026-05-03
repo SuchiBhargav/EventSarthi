@@ -45,14 +45,14 @@ class PlannerRegister(BaseModel):
 class PlannerLogin(BaseModel):
     """Schema for planner login"""
 
-    email: EmailStr = Field(
-        ..., description="Planner's email address", example="planner@example.com"
+    phone: str = Field(
+        ..., description="Planner's phone number", example="+1234567890"
     )
     password: str = Field(..., description="Password", example="SecurePass123!")
 
     class Config:
         json_schema_extra = {
-            "example": {"email": "planner@example.com", "password": "SecurePass123!"}
+            "example": {"phone": "+1234567890", "password": "SecurePass123!"}
         }
 
 

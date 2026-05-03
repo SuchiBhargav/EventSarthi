@@ -3,8 +3,9 @@ Application Configuration
 Manages environment variables and settings
 """
 
-from pydantic_settings import BaseSettings
-from typing import List, Optional
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
+from typing import List, Optional, Union
 from functools import lru_cache
 
 
@@ -12,6 +13,11 @@ class Settings(BaseSettings):
     """
     Application settings loaded from environment variables
     """
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        env_parse_none_str='null'
+    )
 
     # Application
     APP_NAME: str = "Eventsarthi"
@@ -38,7 +44,20 @@ class Settings(BaseSettings):
     BCRYPT_ROUNDS: int = 12
 
     # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8080"]
+    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:8080"
+
+    @field_validator('CORS_ORIGINS', mode='before')
+    @classmethod
+    def parse_cors_origins(cls, v: Union[str, List[str]]) -> str:
+        """Keep CORS_ORIGINS as string, will be split in property"""
+        if isinstance(v, list):
+            return ','.join(v)
+        return v
+    
+    @property
+    def cors_origins_list(self) -> List[str]:
+        """Get CORS origins as a list"""
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(',')]
 
     # WhatsApp API
     WHATSAPP_API_TOKEN: str = ""
@@ -107,11 +126,20 @@ class Settings(BaseSettings):
 
     # File Upload
     MAX_UPLOAD_SIZE_MB: int = 10
-    ALLOWED_FILE_EXTENSIONS: List[str] = [".pdf", ".jpg", ".jpeg", ".png", ".docx"]
+    ALLOWED_FILE_EXTENSIONS: str = ".pdf,.jpg,.jpeg,.png,.docx"
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    @field_validator('ALLOWED_FILE_EXTENSIONS', mode='before')
+    @classmethod
+    def parse_file_extensions(cls, v: Union[str, List[str]]) -> str:
+        """Keep ALLOWED_FILE_EXTENSIONS as string, will be split in property"""
+        if isinstance(v, list):
+            return ','.join(v)
+        return v
+    
+    @property
+    def allowed_extensions_list(self) -> List[str]:
+        """Get allowed file extensions as a list"""
+        return [ext.strip() for ext in self.ALLOWED_FILE_EXTENSIONS.split(',')]
 
 
 @lru_cache()

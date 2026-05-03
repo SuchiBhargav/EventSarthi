@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 
 // Pages
 import LoginForm from '@/components/auth/LoginForm';
+import RegisterForm from '@/components/auth/RegisterForm';
 import Dashboard from '@/pages/Dashboard';
 import GuestManagement from '@/pages/GuestManagement';
 import FAQManagement from '@/pages/FAQManagement';
@@ -32,6 +33,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginForm />} />
+      <Route path="/register" element={<RegisterForm />} />
       <Route
         path="/dashboard"
         element={
