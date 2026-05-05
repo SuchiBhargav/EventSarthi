@@ -10,6 +10,7 @@ export interface Planner {
   whatsapp_number?: string;
   is_active: boolean;
   is_verified: boolean;
+  role: 'admin' | 'planner';
   subscription_tier: 'free' | 'pro' | 'enterprise';
   language_preference: string;
   timezone: string;
@@ -29,6 +30,18 @@ export interface Event {
   confirmed_guests: number;
   budget?: number;
   status: 'draft' | 'planning' | 'confirmed' | 'ongoing' | 'completed' | 'cancelled';
+  guest_data_file_name?: string;
+  guest_data_file_url?: string;
+  food_menu_file_name?: string;
+  food_menu_file_url?: string;
+  faq_file_name?: string;
+  faq_file_url?: string;
+  venue_details_file_name?: string;
+  venue_details_file_url?: string;
+  guest_data_notes?: string;
+  food_menu_notes?: string;
+  faq_notes?: string;
+  venue_details_notes?: string;
   created_at: string;
   updated_at: string;
 }

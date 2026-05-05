@@ -46,6 +46,9 @@ class Planner(Base):
     email_verified = Column(Boolean, default=False, nullable=False)
     phone_verified = Column(Boolean, default=False, nullable=False)
 
+    # Role and Access
+    role = Column(String(20), default="planner", nullable=False)
+
     # Subscription/Tier
     subscription_tier = Column(
         String(50), default="free", nullable=False
@@ -91,12 +94,15 @@ class Planner(Base):
             "whatsapp_number": self.whatsapp_number,
             "is_active": self.is_active,
             "is_verified": self.is_verified,
+            "role": self.role,
             "subscription_tier": self.subscription_tier,
             "language_preference": self.language_preference,
             "timezone": self.timezone,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "created_at": self.created_at.isoformat()
+            if self.created_at is not None
+            else None,
             "last_login_at": self.last_login_at.isoformat()
-            if self.last_login_at
+            if self.last_login_at is not None
             else None,
         }
 

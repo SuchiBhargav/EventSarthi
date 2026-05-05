@@ -118,13 +118,12 @@ def verify_event_access(
     Raises:
         HTTPException: If event not found or access denied
     """
-    event = (
-        db.query(Event)
-        .filter(
-            Event.event_id == event_id, Event.planner_id == current_planner.planner_id
-        )
-        .first()
-    )
+    query = db.query(Event).filter(Event.event_id == event_id)
+
+    if str(current_planner.role) != "admin":
+        query = query.filter(Event.planner_id == current_planner.planner_id)
+
+    event = query.first()
 
     if not event:
         raise HTTPException(

@@ -53,10 +53,11 @@ class ApiService {
 
   async register(data: {
     email: string;
-    phone: string;
+    phone_number: string;
     password: string;
     full_name: string;
-    company_name?: string;
+    business_name?: string;
+    role?: 'admin' | 'planner';
   }) {
     const response = await this.client.post('/auth/register', data);
     return response.data;
@@ -86,6 +87,18 @@ class ApiService {
     venue: string;
     expected_guests: number;
     budget?: number;
+    guest_data_file_name?: string;
+    guest_data_file_url?: string;
+    food_menu_file_name?: string;
+    food_menu_file_url?: string;
+    faq_file_name?: string;
+    faq_file_url?: string;
+    venue_details_file_name?: string;
+    venue_details_file_url?: string;
+    guest_data_notes?: string;
+    food_menu_notes?: string;
+    faq_notes?: string;
+    venue_details_notes?: string;
   }) {
     const response = await this.client.post('/events', data);
     return response.data;
@@ -185,7 +198,12 @@ class ApiService {
   }
 
   async getEventAnalytics(eventId: string) {
-    const response = await this.client.get(`/analytics/events/${eventId}`);
+    const response = await this.client.get(`/analytics/${eventId}/analytics`);
+    return response.data;
+  }
+
+  async getEventConversations(eventId: string) {
+    const response = await this.client.get(`/conversations/${eventId}/conversations`);
     return response.data;
   }
 }

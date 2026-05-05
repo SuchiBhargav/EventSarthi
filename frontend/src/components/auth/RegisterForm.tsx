@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Mail, Phone, Lock, User, Building, Loader2 } from 'lucide-react';
+import { Mail, Phone, Lock, User, Building, Loader2, Eye, EyeOff } from 'lucide-react';
 
 const RegisterForm: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -11,12 +11,15 @@ const RegisterForm: React.FC = () => {
     confirmPassword: '',
     fullName: '',
     businessName: '',
+    role: 'planner',
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -40,6 +43,7 @@ const RegisterForm: React.FC = () => {
         password: formData.password,
         full_name: formData.fullName,
         business_name: formData.businessName || undefined,
+        role: formData.role as 'admin' | 'planner',
       });
       navigate('/dashboard');
     } catch (error) {
@@ -54,7 +58,7 @@ const RegisterForm: React.FC = () => {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-primary-900 mb-2">EventSarthi</h1>
-          <p className="text-gray-600">Create Your Planner Account</p>
+          <p className="text-gray-600">Create Admin or Planner Account</p>
         </div>
 
         <div className="card">
@@ -120,6 +124,22 @@ const RegisterForm: React.FC = () => {
             </div>
 
             <div>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
+                Account Type *
+              </label>
+              <select
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="input-field"
+              >
+                <option value="planner">Planner Dashboard</option>
+                <option value="admin">Internal Admin Dashboard</option>
+              </select>
+            </div>
+
+            <div>
               <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1">
                 Business Name (Optional)
               </label>
@@ -146,14 +166,21 @@ const RegisterForm: React.FC = () => {
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Minimum 8 characters"
-                  className="input-field pl-10"
+                  className="input-field pl-10 pr-10"
                   required
                   minLength={8}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
@@ -166,14 +193,21 @@ const RegisterForm: React.FC = () => {
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
-                  type="password"
+                  type={showConfirmPassword ? 'text' : 'password'}
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="Re-enter password"
-                  className="input-field pl-10"
+                  className="input-field pl-10 pr-10"
                   required
                   minLength={8}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 

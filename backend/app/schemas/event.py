@@ -41,6 +41,18 @@ class EventCreate(BaseModel):
     venue: str = Field(..., description="Event venue/location")
     expected_guests: int = Field(..., ge=1, description="Expected number of guests")
     budget: Optional[float] = Field(None, ge=0, description="Event budget")
+    guest_data_file_name: Optional[str] = Field(None, description="Uploaded guest data file name")
+    guest_data_file_url: Optional[str] = Field(None, description="Uploaded guest data file URL")
+    food_menu_file_name: Optional[str] = Field(None, description="Uploaded food menu file name")
+    food_menu_file_url: Optional[str] = Field(None, description="Uploaded food menu file URL")
+    faq_file_name: Optional[str] = Field(None, description="Uploaded FAQ file name")
+    faq_file_url: Optional[str] = Field(None, description="Uploaded FAQ file URL")
+    venue_details_file_name: Optional[str] = Field(None, description="Uploaded venue details file name")
+    venue_details_file_url: Optional[str] = Field(None, description="Uploaded venue details file URL")
+    guest_data_notes: Optional[str] = Field(None, description="Planner notes for guest data")
+    food_menu_notes: Optional[str] = Field(None, description="Planner notes for food menu")
+    faq_notes: Optional[str] = Field(None, description="Planner notes for FAQs")
+    venue_details_notes: Optional[str] = Field(None, description="Planner notes for venue details")
 
     class Config:
         json_schema_extra = {
@@ -52,6 +64,18 @@ class EventCreate(BaseModel):
                 "venue": "Grand Hotel Ballroom, New York",
                 "expected_guests": 150,
                 "budget": 50000.00,
+                "guest_data_file_name": "guests.xlsx",
+                "guest_data_file_url": "/uploads/events/guests.xlsx",
+                "food_menu_file_name": "menu.docx",
+                "food_menu_file_url": "/uploads/events/menu.docx",
+                "faq_file_name": "faq.docx",
+                "faq_file_url": "/uploads/events/faq.docx",
+                "venue_details_file_name": "venue.pdf",
+                "venue_details_file_url": "/uploads/events/venue.pdf",
+                "guest_data_notes": "Family and VIP guests included",
+                "food_menu_notes": "Jain and vegan counters available",
+                "faq_notes": "Guest support FAQ source file",
+                "venue_details_notes": "Parking gate and entry timings included",
             }
         }
 
@@ -70,6 +94,18 @@ class EventUpdate(BaseModel):
         None, ge=1, description="Expected number of guests"
     )
     budget: Optional[float] = Field(None, ge=0, description="Event budget")
+    guest_data_file_name: Optional[str] = Field(None, description="Uploaded guest data file name")
+    guest_data_file_url: Optional[str] = Field(None, description="Uploaded guest data file URL")
+    food_menu_file_name: Optional[str] = Field(None, description="Uploaded food menu file name")
+    food_menu_file_url: Optional[str] = Field(None, description="Uploaded food menu file URL")
+    faq_file_name: Optional[str] = Field(None, description="Uploaded FAQ file name")
+    faq_file_url: Optional[str] = Field(None, description="Uploaded FAQ file URL")
+    venue_details_file_name: Optional[str] = Field(None, description="Uploaded venue details file name")
+    venue_details_file_url: Optional[str] = Field(None, description="Uploaded venue details file URL")
+    guest_data_notes: Optional[str] = Field(None, description="Planner notes for guest data")
+    food_menu_notes: Optional[str] = Field(None, description="Planner notes for food menu")
+    faq_notes: Optional[str] = Field(None, description="Planner notes for FAQs")
+    venue_details_notes: Optional[str] = Field(None, description="Planner notes for venue details")
     status: Optional[EventStatus] = Field(None, description="Event status")
 
     class Config:
@@ -96,6 +132,18 @@ class EventResponse(BaseModel):
     confirmed_guests: int = Field(default=0, description="Number of confirmed guests")
     budget: Optional[float] = Field(None, description="Event budget")
     status: EventStatus = Field(..., description="Event status")
+    guest_data_file_name: Optional[str] = Field(None, description="Uploaded guest data file name")
+    guest_data_file_url: Optional[str] = Field(None, description="Uploaded guest data file URL")
+    food_menu_file_name: Optional[str] = Field(None, description="Uploaded food menu file name")
+    food_menu_file_url: Optional[str] = Field(None, description="Uploaded food menu file URL")
+    faq_file_name: Optional[str] = Field(None, description="Uploaded FAQ file name")
+    faq_file_url: Optional[str] = Field(None, description="Uploaded FAQ file URL")
+    venue_details_file_name: Optional[str] = Field(None, description="Uploaded venue details file name")
+    venue_details_file_url: Optional[str] = Field(None, description="Uploaded venue details file URL")
+    guest_data_notes: Optional[str] = Field(None, description="Planner notes for guest data")
+    food_menu_notes: Optional[str] = Field(None, description="Planner notes for food menu")
+    faq_notes: Optional[str] = Field(None, description="Planner notes for FAQs")
+    venue_details_notes: Optional[str] = Field(None, description="Planner notes for venue details")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
@@ -114,6 +162,18 @@ class EventResponse(BaseModel):
                 "confirmed_guests": 120,
                 "budget": 50000.00,
                 "status": "confirmed",
+                "guest_data_file_name": "guests.xlsx",
+                "guest_data_file_url": "/uploads/events/guests.xlsx",
+                "food_menu_file_name": "menu.docx",
+                "food_menu_file_url": "/uploads/events/menu.docx",
+                "faq_file_name": "faq.docx",
+                "faq_file_url": "/uploads/events/faq.docx",
+                "venue_details_file_name": "venue.pdf",
+                "venue_details_file_url": "/uploads/events/venue.pdf",
+                "guest_data_notes": "Family and VIP guests included",
+                "food_menu_notes": "Jain and vegan counters available",
+                "faq_notes": "Guest support FAQ source file",
+                "venue_details_notes": "Parking gate and entry timings included",
                 "created_at": "2024-01-15T10:30:00Z",
                 "updated_at": "2024-02-20T15:45:00Z",
             }

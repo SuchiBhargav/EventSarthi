@@ -96,12 +96,20 @@ async def register_planner(
         )
 
     # Create new planner
+    role = planner_data.role.lower().strip()
+    if role not in {"admin", "planner"}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Role must be either 'admin' or 'planner'",
+        )
+
     new_planner = Planner(
         email=planner_data.email,
         phone=planner_data.phone_number,
         password_hash=get_password_hash(planner_data.password),
         full_name=planner_data.full_name,
         company_name=planner_data.business_name,
+        role=role,
         is_active=True,
         is_verified=False,  # Email verification required
         email_verified=False,
@@ -460,6 +468,7 @@ async def get_current_planner_profile(
         "phone_number": current_planner.phone,
         "business_name": current_planner.company_name,
         "is_verified": current_planner.is_verified,
+        "role": current_planner.role,
         "created_at": current_planner.created_at,
     }
 

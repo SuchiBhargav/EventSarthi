@@ -15,7 +15,7 @@ import { toast } from 'react-hot-toast';
 
 const Guests: React.FC = () => {
   const navigate = useNavigate();
-  const { planner } = useAuth();
+  useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');

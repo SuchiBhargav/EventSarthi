@@ -312,7 +312,7 @@ Eventsarthi/
    API docs at `http://localhost:8000/docs`
 
 8. **Run the frontent**
-   npm run dev
+   npm run dev   (run in 3000 port)
 
 
 ### Environment Variables

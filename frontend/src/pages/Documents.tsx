@@ -16,7 +16,7 @@ import { toast } from 'react-hot-toast';
 
 const Documents: React.FC = () => {
   const navigate = useNavigate();
-  const { planner } = useAuth();
+  useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string>('');
   const [documents, setDocuments] = useState<Document[]>([]);

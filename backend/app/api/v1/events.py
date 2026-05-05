@@ -65,8 +65,20 @@ async def create_event(
         end_date=event_data.event_date,  # Can be updated later
         venue_name=event_data.venue,
         status=EventStatus.DRAFT,
-        total_guests=0,
+        total_guests=event_data.expected_guests,
         guests_checked_in=0,
+        guest_data_file_name=event_data.guest_data_file_name,
+        guest_data_file_url=event_data.guest_data_file_url,
+        food_menu_file_name=event_data.food_menu_file_name,
+        food_menu_file_url=event_data.food_menu_file_url,
+        faq_file_name=event_data.faq_file_name,
+        faq_file_url=event_data.faq_file_url,
+        venue_details_file_name=event_data.venue_details_file_name,
+        venue_details_file_url=event_data.venue_details_file_url,
+        guest_data_notes=event_data.guest_data_notes,
+        food_menu_notes=event_data.food_menu_notes,
+        faq_notes=event_data.faq_notes,
+        venue_details_notes=event_data.venue_details_notes,
     )
 
     db.add(new_event)
@@ -85,6 +97,18 @@ async def create_event(
         "confirmed_guests": 0,
         "budget": event_data.budget,
         "status": new_event.status.value,
+        "guest_data_file_name": new_event.guest_data_file_name,
+        "guest_data_file_url": new_event.guest_data_file_url,
+        "food_menu_file_name": new_event.food_menu_file_name,
+        "food_menu_file_url": new_event.food_menu_file_url,
+        "faq_file_name": new_event.faq_file_name,
+        "faq_file_url": new_event.faq_file_url,
+        "venue_details_file_name": new_event.venue_details_file_name,
+        "venue_details_file_url": new_event.venue_details_file_url,
+        "guest_data_notes": new_event.guest_data_notes,
+        "food_menu_notes": new_event.food_menu_notes,
+        "faq_notes": new_event.faq_notes,
+        "venue_details_notes": new_event.venue_details_notes,
         "created_at": new_event.created_at,
         "updated_at": new_event.updated_at,
     }
@@ -119,7 +143,9 @@ async def list_events(
     - **event_type**: Filter by event type (wedding, birthday, etc.)
     """
     # Build query with tenant isolation
-    query = db.query(Event).filter(Event.planner_id == current_planner.planner_id)
+    query = db.query(Event)
+    if str(current_planner.role) != "admin":
+        query = query.filter(Event.planner_id == current_planner.planner_id)
 
     # Apply filters
     if status:
@@ -150,6 +176,18 @@ async def list_events(
                 "confirmed_guests": event.guests_checked_in,
                 "budget": None,
                 "status": event.status.value,
+                "guest_data_file_name": event.guest_data_file_name,
+                "guest_data_file_url": event.guest_data_file_url,
+                "food_menu_file_name": event.food_menu_file_name,
+                "food_menu_file_url": event.food_menu_file_url,
+                "faq_file_name": event.faq_file_name,
+                "faq_file_url": event.faq_file_url,
+                "venue_details_file_name": event.venue_details_file_name,
+                "venue_details_file_url": event.venue_details_file_url,
+                "guest_data_notes": event.guest_data_notes,
+                "food_menu_notes": event.food_menu_notes,
+                "faq_notes": event.faq_notes,
+                "venue_details_notes": event.venue_details_notes,
                 "created_at": event.created_at,
                 "updated_at": event.updated_at,
             }
@@ -178,39 +216,28 @@ async def get_event_stats(
     Returns aggregated statistics about the planner's events including
     total events, upcoming events, completed events, and total guests.
     """
+    base_query = db.query(Event)
+    if str(current_planner.role) != "admin":
+        base_query = base_query.filter(Event.planner_id == current_planner.planner_id)
+
     # Get total events
-    total_events = (
-        db.query(Event).filter(Event.planner_id == current_planner.planner_id).count()
-    )
+    total_events = base_query.count()
 
     # Get upcoming events (not completed/archived)
     upcoming_events = (
-        db.query(Event)
-        .filter(
-            Event.planner_id == current_planner.planner_id,
+        base_query.filter(
             Event.status.in_([EventStatus.DRAFT, EventStatus.ACTIVE]),
             Event.start_date >= datetime.utcnow(),
-        )
-        .count()
+        ).count()
     )
 
     # Get completed events
-    completed_events = (
-        db.query(Event)
-        .filter(
-            Event.planner_id == current_planner.planner_id,
-            Event.status == EventStatus.COMPLETED,
-        )
-        .count()
-    )
+    completed_events = base_query.filter(
+        Event.status == EventStatus.COMPLETED,
+    ).count()
 
     # Get total guests across all events
-    total_guests = (
-        db.query(func.sum(Event.total_guests))
-        .filter(Event.planner_id == current_planner.planner_id)
-        .scalar()
-        or 0
-    )
+    total_guests = base_query.with_entities(func.sum(Event.total_guests)).scalar() or 0
 
     return {
         "total_events": total_events,
@@ -257,6 +284,18 @@ async def get_event(
         "confirmed_guests": event.guests_checked_in,
         "budget": None,
         "status": event.status.value,
+        "guest_data_file_name": event.guest_data_file_name,
+        "guest_data_file_url": event.guest_data_file_url,
+        "food_menu_file_name": event.food_menu_file_name,
+        "food_menu_file_url": event.food_menu_file_url,
+        "faq_file_name": event.faq_file_name,
+        "faq_file_url": event.faq_file_url,
+        "venue_details_file_name": event.venue_details_file_name,
+        "venue_details_file_url": event.venue_details_file_url,
+        "guest_data_notes": event.guest_data_notes,
+        "food_menu_notes": event.food_menu_notes,
+        "faq_notes": event.faq_notes,
+        "venue_details_notes": event.venue_details_notes,
         "created_at": event.created_at,
         "updated_at": event.updated_at,
     }
@@ -306,6 +345,30 @@ async def update_event(
         event.total_guests = event_data.expected_guests  # type: ignore[assignment]
     if event_data.status is not None:
         event.status = EventStatus[event_data.status.value.upper()]  # type: ignore[assignment]
+    if event_data.guest_data_file_name is not None:
+        event.guest_data_file_name = event_data.guest_data_file_name  # type: ignore[assignment]
+    if event_data.guest_data_file_url is not None:
+        event.guest_data_file_url = event_data.guest_data_file_url  # type: ignore[assignment]
+    if event_data.food_menu_file_name is not None:
+        event.food_menu_file_name = event_data.food_menu_file_name  # type: ignore[assignment]
+    if event_data.food_menu_file_url is not None:
+        event.food_menu_file_url = event_data.food_menu_file_url  # type: ignore[assignment]
+    if event_data.faq_file_name is not None:
+        event.faq_file_name = event_data.faq_file_name  # type: ignore[assignment]
+    if event_data.faq_file_url is not None:
+        event.faq_file_url = event_data.faq_file_url  # type: ignore[assignment]
+    if event_data.venue_details_file_name is not None:
+        event.venue_details_file_name = event_data.venue_details_file_name  # type: ignore[assignment]
+    if event_data.venue_details_file_url is not None:
+        event.venue_details_file_url = event_data.venue_details_file_url  # type: ignore[assignment]
+    if event_data.guest_data_notes is not None:
+        event.guest_data_notes = event_data.guest_data_notes  # type: ignore[assignment]
+    if event_data.food_menu_notes is not None:
+        event.food_menu_notes = event_data.food_menu_notes  # type: ignore[assignment]
+    if event_data.faq_notes is not None:
+        event.faq_notes = event_data.faq_notes  # type: ignore[assignment]
+    if event_data.venue_details_notes is not None:
+        event.venue_details_notes = event_data.venue_details_notes  # type: ignore[assignment]
 
     event.updated_at = datetime.utcnow()  # type: ignore[assignment]
     db.commit()
@@ -323,6 +386,18 @@ async def update_event(
         "confirmed_guests": event.guests_checked_in,
         "budget": event_data.budget,
         "status": event.status.value,
+        "guest_data_file_name": event.guest_data_file_name,
+        "guest_data_file_url": event.guest_data_file_url,
+        "food_menu_file_name": event.food_menu_file_name,
+        "food_menu_file_url": event.food_menu_file_url,
+        "faq_file_name": event.faq_file_name,
+        "faq_file_url": event.faq_file_url,
+        "venue_details_file_name": event.venue_details_file_name,
+        "venue_details_file_url": event.venue_details_file_url,
+        "guest_data_notes": event.guest_data_notes,
+        "food_menu_notes": event.food_menu_notes,
+        "faq_notes": event.faq_notes,
+        "venue_details_notes": event.venue_details_notes,
         "created_at": event.created_at,
         "updated_at": event.updated_at,
     }
@@ -417,6 +492,18 @@ async def complete_event(
         "confirmed_guests": event.guests_checked_in,
         "budget": None,
         "status": event.status.value,
+        "guest_data_file_name": event.guest_data_file_name,
+        "guest_data_file_url": event.guest_data_file_url,
+        "food_menu_file_name": event.food_menu_file_name,
+        "food_menu_file_url": event.food_menu_file_url,
+        "faq_file_name": event.faq_file_name,
+        "faq_file_url": event.faq_file_url,
+        "venue_details_file_name": event.venue_details_file_name,
+        "venue_details_file_url": event.venue_details_file_url,
+        "guest_data_notes": event.guest_data_notes,
+        "food_menu_notes": event.food_menu_notes,
+        "faq_notes": event.faq_notes,
+        "venue_details_notes": event.venue_details_notes,
         "created_at": event.created_at,
         "updated_at": event.updated_at,
     }

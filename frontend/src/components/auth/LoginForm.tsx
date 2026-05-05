@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Phone, Lock, Loader2 } from 'lucide-react';
+import { Phone, Lock, Loader2, Eye, EyeOff, ShieldCheck, UserPlus } from 'lucide-react';
 
 const LoginForm: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loginMode, setLoginMode] = useState<'admin' | 'planner'>('planner');
+  const [showPassword, setShowPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetPhone, setResetPhone] = useState('');
   const [isResetting, setIsResetting] = useState(false);
@@ -44,17 +46,50 @@ const LoginForm: React.FC = () => {
     }
   };
 
+  const loginTitle = useMemo(
+    () => (loginMode === 'admin' ? 'Admin Login' : 'Planner Login'),
+    [loginMode]
+  );
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-primary-900 mb-2">EventSarthi</h1>
-          <p className="text-gray-600">Planner Dashboard</p>
+          <p className="text-gray-600">{loginMode === 'admin' ? 'Internal Admin Access' : 'Planner Dashboard'}</p>
         </div>
 
         <div className="card">
+          {!showForgotPassword && (
+            <div className="grid grid-cols-2 gap-2 mb-6">
+              <button
+                type="button"
+                onClick={() => setLoginMode('planner')}
+                className={`flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${
+                  loginMode === 'planner'
+                    ? 'border-primary-600 bg-primary-50 text-primary-700'
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <UserPlus className="w-4 h-4" />
+                Planner
+              </button>
+              <button
+                type="button"
+                onClick={() => setLoginMode('admin')}
+                className={`flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${
+                  loginMode === 'admin'
+                    ? 'border-purple-600 bg-purple-50 text-purple-700'
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Admin
+              </button>
+            </div>
+          )}
           <h2 className="text-2xl font-semibold mb-6 text-center">
-            {showForgotPassword ? 'Reset Password' : 'Login'}
+            {showForgotPassword ? 'Reset Password' : loginTitle}
           </h2>
           
           {showForgotPassword ? (
@@ -135,13 +170,20 @@ const LoginForm: React.FC = () => {
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input
                       id="password"
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
-                      className="input-field pl-10"
+                      className="input-field pl-10 pr-10"
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                   </div>
                 </div>
 
@@ -173,12 +215,12 @@ const LoginForm: React.FC = () => {
 
               <div className="mt-6 text-center">
                 <p className="text-sm text-gray-600">
-                  Don't have an account?{' '}
+                  {loginMode === 'admin' ? 'Need an internal account?' : "Don't have an account?"}{' '}
                   <button
                     onClick={() => navigate('/register')}
                     className="text-primary-600 hover:text-primary-700 font-medium"
                   >
-                    Register here
+                    {loginMode === 'admin' ? 'Create admin or planner account' : 'Register here'}
                   </button>
                 </p>
               </div>

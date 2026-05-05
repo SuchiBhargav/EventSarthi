@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { HelpCircle, Plus, Edit2, Trash2, Save, X } from 'lucide-react';
+import { HelpCircle, Plus, Edit2, Trash2, Save } from 'lucide-react';
 import { FAQ } from '@/types';
 import api from '@/services/api';
 import { toast } from 'react-hot-toast';

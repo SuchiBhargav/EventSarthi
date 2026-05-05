@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Users, Upload, Download, Plus, Search, Filter } from 'lucide-react';
+import { Users, Upload, Download, Search } from 'lucide-react';
 import { Guest } from '@/types';
 import api from '@/services/api';
 import { toast } from 'react-hot-toast';

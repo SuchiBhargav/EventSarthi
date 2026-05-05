@@ -72,6 +72,20 @@ class Event(Base):
     state = Column(String(100), nullable=True)
     country = Column(String(100), default="India", nullable=False)
 
+    # Planner-uploaded event data
+    guest_data_file_name = Column(String(255), nullable=True)
+    guest_data_file_url = Column(Text, nullable=True)
+    food_menu_file_name = Column(String(255), nullable=True)
+    food_menu_file_url = Column(Text, nullable=True)
+    faq_file_name = Column(String(255), nullable=True)
+    faq_file_url = Column(Text, nullable=True)
+    venue_details_file_name = Column(String(255), nullable=True)
+    venue_details_file_url = Column(Text, nullable=True)
+    guest_data_notes = Column(Text, nullable=True)
+    food_menu_notes = Column(Text, nullable=True)
+    faq_notes = Column(Text, nullable=True)
+    venue_details_notes = Column(Text, nullable=True)
+
     # Status
     status = Column(Enum(EventStatus), default=EventStatus.DRAFT, nullable=False)
 
@@ -138,6 +152,18 @@ class Event(Base):
             "status": self.status.value if self.status is not None else None,
             "total_guests": self.total_guests,
             "guests_checked_in": self.guests_checked_in,
+            "guest_data_file_name": self.guest_data_file_name,
+            "guest_data_file_url": self.guest_data_file_url,
+            "food_menu_file_name": self.food_menu_file_name,
+            "food_menu_file_url": self.food_menu_file_url,
+            "faq_file_name": self.faq_file_name,
+            "faq_file_url": self.faq_file_url,
+            "venue_details_file_name": self.venue_details_file_name,
+            "venue_details_file_url": self.venue_details_file_url,
+            "guest_data_notes": self.guest_data_notes,
+            "food_menu_notes": self.food_menu_notes,
+            "faq_notes": self.faq_notes,
+            "venue_details_notes": self.venue_details_notes,
             "language": self.language,
             "bot_enabled": self.bot_enabled,
             "created_at": self.created_at.isoformat()

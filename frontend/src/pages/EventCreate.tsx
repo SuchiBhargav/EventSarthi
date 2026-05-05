@@ -1,20 +1,20 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Calendar,
   MapPin,
   Users,
-  FileText,
   ArrowLeft,
   Loader2,
+  Upload,
 } from 'lucide-react';
 import api from '@/services/api';
 import { toast } from 'react-hot-toast';
 
 const EventCreate: React.FC = () => {
   const navigate = useNavigate();
-  const { planner } = useAuth();
+  useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -23,6 +23,20 @@ const EventCreate: React.FC = () => {
     event_date: '',
     venue: '',
     expected_guests: '',
+    guest_data_notes: '',
+    food_menu_notes: '',
+    faq_notes: '',
+    venue_details_notes: '',
+  });
+  const [files, setFiles] = useState({
+    guest_data_file_name: '',
+    guest_data_file_url: '',
+    food_menu_file_name: '',
+    food_menu_file_url: '',
+    faq_file_name: '',
+    faq_file_url: '',
+    venue_details_file_name: '',
+    venue_details_file_url: '',
   });
 
   const handleChange = (
@@ -34,6 +48,55 @@ const EventCreate: React.FC = () => {
     });
   };
 
+  const uploadSections = useMemo(
+    () => [
+      {
+        keyName: 'guest_data_file_name',
+        keyUrl: 'guest_data_file_url',
+        noteKey: 'guest_data_notes',
+        title: 'Guest Data',
+        help: 'Upload guest list in Excel, CSV, DOC, or DOCX format.',
+      },
+      {
+        keyName: 'food_menu_file_name',
+        keyUrl: 'food_menu_file_url',
+        noteKey: 'food_menu_notes',
+        title: 'Food Menu',
+        help: 'Upload menu sheet or catering document.',
+      },
+      {
+        keyName: 'faq_file_name',
+        keyUrl: 'faq_file_url',
+        noteKey: 'faq_notes',
+        title: 'Frequently Asked Questions',
+        help: 'Upload FAQ document that planners update frequently.',
+      },
+      {
+        keyName: 'venue_details_file_name',
+        keyUrl: 'venue_details_file_url',
+        noteKey: 'venue_details_notes',
+        title: 'Venue Details',
+        help: 'Upload venue instructions, directions, or layout details.',
+      },
+    ],
+    []
+  );
+
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    fileNameKey: keyof typeof files,
+    fileUrlKey: keyof typeof files
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setFiles((prev) => ({
+      ...prev,
+      [fileNameKey]: file.name,
+      [fileUrlKey]: `local-upload://${file.name}`,
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -41,6 +104,7 @@ const EventCreate: React.FC = () => {
     try {
       const eventData = {
         ...formData,
+        ...files,
         expected_guests: parseInt(formData.expected_guests),
       };
       
@@ -203,6 +267,60 @@ const EventCreate: React.FC = () => {
                   className="input-field pl-10"
                   required
                 />
+              </div>
+            </div>
+
+            <div className="border border-gray-200 rounded-xl p-5 bg-gray-50 space-y-4">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Planner Data Uploads</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Attach source files for guest list, food menu, frequently asked questions,
+                  and venue details. These will be saved with the event record.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                {uploadSections.map((section) => (
+                  <div key={section.keyName} className="border border-gray-200 rounded-lg bg-white p-4">
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <div>
+                        <h3 className="font-medium text-gray-900">{section.title}</h3>
+                        <p className="text-sm text-gray-500">{section.help}</p>
+                      </div>
+                      <label className="btn-secondary cursor-pointer flex items-center gap-2 whitespace-nowrap">
+                        <Upload className="w-4 h-4" />
+                        Choose File
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept=".xls,.xlsx,.csv,.doc,.docx,.pdf"
+                          onChange={(e) =>
+                            handleFileChange(
+                              e,
+                              section.keyName as keyof typeof files,
+                              section.keyUrl as keyof typeof files
+                            )
+                          }
+                        />
+                      </label>
+                    </div>
+
+                    <div className="mb-3 rounded-lg border border-dashed border-gray-300 p-3 text-sm text-gray-600">
+                      {files[section.keyName as keyof typeof files]
+                        ? `Selected: ${files[section.keyName as keyof typeof files]}`
+                        : 'No file selected'}
+                    </div>
+
+                    <textarea
+                      name={section.noteKey}
+                      value={formData[section.noteKey as keyof typeof formData]}
+                      onChange={handleChange}
+                      rows={3}
+                      placeholder={`Add notes for ${section.title.toLowerCase()}`}
+                      className="input-field"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
 

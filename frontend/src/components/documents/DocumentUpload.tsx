@@ -96,8 +96,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
     setUploads((prev) => prev.filter((_, idx) => idx !== index));
   };
 
-  const getFileIcon = (fileName: string) => {
-    const ext = fileName.split('.').pop()?.toLowerCase();
+  const getFileIcon = (_fileName: string) => {
     return <File className="w-5 h-5 text-gray-400" />;
   };
 

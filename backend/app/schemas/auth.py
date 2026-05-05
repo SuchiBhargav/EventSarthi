@@ -12,22 +12,27 @@ class PlannerRegister(BaseModel):
     """Schema for planner registration"""
 
     email: EmailStr = Field(
-        ..., description="Planner's email address", example="planner@example.com"
+        ..., description="Planner's email address", json_schema_extra={"example": "planner@example.com"}
     )
     password: str = Field(
         ...,
         min_length=8,
         description="Password (minimum 8 characters)",
-        example="SecurePass123!",
+        json_schema_extra={"example": "SecurePass123!"},
     )
     full_name: str = Field(
-        ..., min_length=2, max_length=100, description="Full name", example="John Doe"
+        ..., min_length=2, max_length=100, description="Full name", json_schema_extra={"example": "John Doe"}
     )
     phone_number: str = Field(
-        ..., description="Phone number with country code", example="+1234567890"
+        ..., description="Phone number with country code", json_schema_extra={"example": "+1234567890"}
     )
     business_name: Optional[str] = Field(
-        None, description="Business or company name", example="Elite Events"
+        None, description="Business or company name", json_schema_extra={"example": "Elite Events"}
+    )
+    role: str = Field(
+        default="planner",
+        description="User role: admin for internal team, planner for event planners",
+        json_schema_extra={"example": "planner"},
     )
 
     class Config:
@@ -38,6 +43,7 @@ class PlannerRegister(BaseModel):
                 "full_name": "John Doe",
                 "phone_number": "+1234567890",
                 "business_name": "Elite Events",
+                "role": "planner",
             }
         }
 
@@ -46,9 +52,11 @@ class PlannerLogin(BaseModel):
     """Schema for planner login"""
 
     phone: str = Field(
-        ..., description="Planner's phone number", example="+1234567890"
+        ..., description="Planner's phone number", json_schema_extra={"example": "+1234567890"}
     )
-    password: str = Field(..., description="Password", example="SecurePass123!")
+    password: str = Field(
+        ..., description="Password", json_schema_extra={"example": "SecurePass123!"}
+    )
 
     class Config:
         json_schema_extra = {
@@ -130,6 +138,7 @@ class PlannerResponse(BaseModel):
     phone_number: str = Field(..., description="Phone number")
     business_name: Optional[str] = Field(None, description="Business name")
     is_verified: bool = Field(..., description="Email verification status")
+    role: str = Field(..., description="Role of the authenticated user")
     created_at: datetime = Field(..., description="Account creation timestamp")
 
     class Config:
@@ -142,6 +151,7 @@ class PlannerResponse(BaseModel):
                 "phone_number": "+1234567890",
                 "business_name": "Elite Events",
                 "is_verified": True,
+                "role": "planner",
                 "created_at": "2024-01-15T10:30:00Z",
             }
         }
