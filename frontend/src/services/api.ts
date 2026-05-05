@@ -120,23 +120,63 @@ class ApiService {
     return response.data;
   }
 
-  async addGuest(eventId: string, data: any) {
+  async addGuest(
+    eventId: string,
+    data: {
+      name: string;
+      phone_number: string;
+      email?: string;
+      plus_one?: boolean;
+      dietary_restrictions?: string;
+      notes?: string;
+      relation_type?: string;
+      tone_preference?: string;
+      language?: string;
+      vip_level?: string;
+      food_preference?: string;
+      room_number?: string;
+      hotel_name?: string;
+      whatsapp_opted_in?: boolean;
+      notifications_enabled?: boolean;
+      custom_fields?: Record<string, unknown>;
+    }
+  ) {
     const response = await this.client.post(`/events/${eventId}/guests`, data);
     return response.data;
   }
 
-  async bulkAddGuests(eventId: string, guests: any[]) {
-    const response = await this.client.post(`/events/${eventId}/guests/bulk`, { guests });
+  async bulkAddGuests(
+    eventId: string,
+    guests: Array<{
+      name: string;
+      phone_number: string;
+      email?: string;
+      plus_one?: boolean;
+      dietary_restrictions?: string;
+      notes?: string;
+      relation_type?: string;
+      tone_preference?: string;
+      language?: string;
+      vip_level?: string;
+      food_preference?: string;
+      room_number?: string;
+      hotel_name?: string;
+      whatsapp_opted_in?: boolean;
+      notifications_enabled?: boolean;
+      custom_fields?: Record<string, unknown>;
+    }>
+  ) {
+    const response = await this.client.post(`/events/${eventId}/guests/import`, { guests });
     return response.data;
   }
 
-  async updateGuest(guestId: string, data: Partial<any>) {
-    const response = await this.client.put(`/guests/${guestId}`, data);
+  async updateGuest(eventId: string, guestId: string, data: Partial<any>) {
+    const response = await this.client.put(`/events/${eventId}/guests/${guestId}`, data);
     return response.data;
   }
 
-  async deleteGuest(guestId: string) {
-    const response = await this.client.delete(`/guests/${guestId}`);
+  async deleteGuest(eventId: string, guestId: string) {
+    const response = await this.client.delete(`/events/${eventId}/guests/${guestId}`);
     return response.data;
   }
 
@@ -188,6 +228,26 @@ class ApiService {
 
   async deleteDocument(documentId: string) {
     const response = await this.client.delete(`/documents/${documentId}`);
+    return response.data;
+  }
+
+  // Broadcasts
+  async createBroadcast(
+    eventId: string,
+    data: {
+      message: string;
+      send_immediately?: boolean;
+      scheduled_at?: string;
+      use_personalization?: boolean;
+      target_filter?: Record<string, unknown>;
+    }
+  ) {
+    const response = await this.client.post(`/broadcasts/${eventId}/broadcasts`, data);
+    return response.data;
+  }
+
+  async getBroadcasts(eventId: string) {
+    const response = await this.client.get(`/broadcasts/${eventId}/broadcasts`);
     return response.data;
   }
 

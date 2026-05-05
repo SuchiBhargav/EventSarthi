@@ -85,6 +85,20 @@ async def add_guest(
         plus_ones=1 if guest_data.plus_one else 0,
         dietary_restrictions=guest_data.dietary_restrictions,
         notes=guest_data.notes,
+        relation_type=guest_data.relation_type or "other",
+        tone_preference=guest_data.tone_preference or "friendly",
+        language=guest_data.language or "en",
+        vip_level=guest_data.vip_level or "regular",
+        food_preference=guest_data.food_preference,
+        room_number=guest_data.room_number,
+        hotel_name=guest_data.hotel_name,
+        whatsapp_opted_in=guest_data.whatsapp_opted_in
+        if guest_data.whatsapp_opted_in is not None
+        else True,
+        notifications_enabled=guest_data.notifications_enabled
+        if guest_data.notifications_enabled is not None
+        else True,
+        custom_fields=guest_data.custom_fields,
         is_attending=True,
         checked_in=False,
     )
@@ -108,6 +122,16 @@ async def add_guest(
         "plus_one": new_guest.plus_ones > 0,
         "dietary_restrictions": new_guest.dietary_restrictions,
         "notes": new_guest.notes,
+        "relation_type": new_guest.relation_type,
+        "tone_preference": new_guest.tone_preference,
+        "language": new_guest.language,
+        "vip_level": new_guest.vip_level,
+        "food_preference": new_guest.food_preference,
+        "room_number": new_guest.room_number,
+        "hotel_name": new_guest.hotel_name,
+        "whatsapp_opted_in": new_guest.whatsapp_opted_in,
+        "notifications_enabled": new_guest.notifications_enabled,
+        "custom_fields": new_guest.custom_fields,
         "rsvp_status": RSVPStatus.PENDING,
         "rsvp_date": None,
         "created_at": new_guest.created_at,
@@ -177,6 +201,16 @@ async def list_guests(
                 "plus_one": guest.plus_ones > 0,
                 "dietary_restrictions": guest.dietary_restrictions,
                 "notes": guest.notes,
+                "relation_type": guest.relation_type,
+                "tone_preference": guest.tone_preference,
+                "language": guest.language,
+                "vip_level": guest.vip_level,
+                "food_preference": guest.food_preference,
+                "room_number": guest.room_number,
+                "hotel_name": guest.hotel_name,
+                "whatsapp_opted_in": guest.whatsapp_opted_in,
+                "notifications_enabled": guest.notifications_enabled,
+                "custom_fields": guest.custom_fields,
                 "rsvp_status": RSVPStatus.CONFIRMED
                 if is_attending
                 else RSVPStatus.PENDING,
@@ -286,6 +320,16 @@ async def get_guest(
         "plus_one": guest.plus_ones > 0,
         "dietary_restrictions": guest.dietary_restrictions,
         "notes": guest.notes,
+        "relation_type": guest.relation_type,
+        "tone_preference": guest.tone_preference,
+        "language": guest.language,
+        "vip_level": guest.vip_level,
+        "food_preference": guest.food_preference,
+        "room_number": guest.room_number,
+        "hotel_name": guest.hotel_name,
+        "whatsapp_opted_in": guest.whatsapp_opted_in,
+        "notifications_enabled": guest.notifications_enabled,
+        "custom_fields": guest.custom_fields,
         "rsvp_status": RSVPStatus.CONFIRMED if is_attending else RSVPStatus.PENDING,
         "rsvp_date": guest.updated_at if is_attending else None,
         "created_at": guest.created_at,
@@ -346,6 +390,26 @@ async def update_guest(
         guest.dietary_restrictions = guest_data.dietary_restrictions  # type: ignore[assignment]
     if guest_data.notes is not None:
         guest.notes = guest_data.notes  # type: ignore[assignment]
+    if guest_data.relation_type is not None:
+        guest.relation_type = guest_data.relation_type  # type: ignore[assignment]
+    if guest_data.tone_preference is not None:
+        guest.tone_preference = guest_data.tone_preference  # type: ignore[assignment]
+    if guest_data.language is not None:
+        guest.language = guest_data.language  # type: ignore[assignment]
+    if guest_data.vip_level is not None:
+        guest.vip_level = guest_data.vip_level  # type: ignore[assignment]
+    if guest_data.food_preference is not None:
+        guest.food_preference = guest_data.food_preference  # type: ignore[assignment]
+    if guest_data.room_number is not None:
+        guest.room_number = guest_data.room_number  # type: ignore[assignment]
+    if guest_data.hotel_name is not None:
+        guest.hotel_name = guest_data.hotel_name  # type: ignore[assignment]
+    if guest_data.whatsapp_opted_in is not None:
+        guest.whatsapp_opted_in = guest_data.whatsapp_opted_in  # type: ignore[assignment]
+    if guest_data.notifications_enabled is not None:
+        guest.notifications_enabled = guest_data.notifications_enabled  # type: ignore[assignment]
+    if guest_data.custom_fields is not None:
+        guest.custom_fields = guest_data.custom_fields  # type: ignore[assignment]
     if guest_data.rsvp_status is not None:
         guest.is_attending = guest_data.rsvp_status == RSVPStatus.CONFIRMED  # type: ignore[assignment]
 
@@ -363,6 +427,16 @@ async def update_guest(
         "plus_one": guest.plus_ones > 0,
         "dietary_restrictions": guest.dietary_restrictions,
         "notes": guest.notes,
+        "relation_type": guest.relation_type,
+        "tone_preference": guest.tone_preference,
+        "language": guest.language,
+        "vip_level": guest.vip_level,
+        "food_preference": guest.food_preference,
+        "room_number": guest.room_number,
+        "hotel_name": guest.hotel_name,
+        "whatsapp_opted_in": guest.whatsapp_opted_in,
+        "notifications_enabled": guest.notifications_enabled,
+        "custom_fields": guest.custom_fields,
         "rsvp_status": RSVPStatus.CONFIRMED if is_attending else RSVPStatus.PENDING,
         "rsvp_date": guest.updated_at if is_attending else None,
         "created_at": guest.created_at,
@@ -475,6 +549,20 @@ async def import_guests(
             plus_ones=1 if guest_data.plus_one else 0,
             dietary_restrictions=guest_data.dietary_restrictions,
             notes=guest_data.notes,
+            relation_type=guest_data.relation_type or "other",
+            tone_preference=guest_data.tone_preference or "friendly",
+            language=guest_data.language or "en",
+            vip_level=guest_data.vip_level or "regular",
+            food_preference=guest_data.food_preference,
+            room_number=guest_data.room_number,
+            hotel_name=guest_data.hotel_name,
+            whatsapp_opted_in=guest_data.whatsapp_opted_in
+            if guest_data.whatsapp_opted_in is not None
+            else True,
+            notifications_enabled=guest_data.notifications_enabled
+            if guest_data.notifications_enabled is not None
+            else True,
+            custom_fields=guest_data.custom_fields,
             is_attending=True,
             checked_in=False,
         )

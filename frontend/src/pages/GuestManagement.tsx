@@ -66,15 +66,48 @@ const GuestManagement: React.FC = () => {
 
   const processGuestData = async (data: any[]) => {
     try {
-      const guestData = data.map((row: any) => ({
-        name: row.name || row.Name || row.NAME,
-        phone: row.phone || row.Phone || row.PHONE,
-        email: row.email || row.Email || row.EMAIL,
-        relation_type: row.relation_type || row.relation || 'other',
-        room_number: row.room_number || row.room,
-        food_preference: row.food_preference || row.food,
-        vip_level: row.vip_level || 0,
-      }));
+      const guestData = data
+        .map((row: any) => {
+          const phoneNumber =
+            row.phone ||
+            row.Phone ||
+            row.PHONE ||
+            row.phone_number ||
+            row.phoneNumber ||
+            row.mobile ||
+            row.Mobile ||
+            row.MOBILE ||
+            row.whatsapp ||
+            row.WhatsApp ||
+            row.WHATSAPP;
+
+          return {
+            name: row.name || row.Name || row.NAME,
+            phone_number: phoneNumber ? String(phoneNumber).trim() : '',
+            email: row.email || row.Email || row.EMAIL,
+            relation_type: row.relation_type || row.relation_type || row.relation || 'other',
+            tone_preference:
+              row.tone_preference || row.tone || row.message_tone || 'friendly',
+            language: row.language || row.lang || 'en',
+            vip_level: String(row.vip_level || row.priority || row.guest_priority || 'regular'),
+            room_number: row.room_number || row.room || row.room_no,
+            hotel_name: row.hotel_name || row.hotel,
+            food_preference: row.food_preference || row.food,
+            notes: row.notes || row.Note || row.remarks,
+            whatsapp_opted_in:
+              row.whatsapp_opted_in !== undefined
+                ? Boolean(row.whatsapp_opted_in)
+                : true,
+            notifications_enabled:
+              row.notifications_enabled !== undefined
+                ? Boolean(row.notifications_enabled)
+                : true,
+            custom_fields: {
+              source_priority: row.priority || row.guest_priority || null,
+            },
+          };
+        })
+        .filter((guest) => guest.name && guest.phone_number);
 
       await api.bulkAddGuests(eventId!, guestData);
       toast.success(`${guestData.length} guests added successfully`);
@@ -89,12 +122,17 @@ const GuestManagement: React.FC = () => {
     const template = [
       {
         name: 'John Doe',
-        phone: '+919876543210',
+        phone_number: '+919876543210',
         email: 'john@example.com',
         relation_type: 'friend',
+        tone_preference: 'friendly',
+        language: 'en',
+        vip_level: 'vip',
         room_number: '101',
+        hotel_name: 'Grand Palace',
         food_preference: 'vegetarian',
-        vip_level: 0,
+        notes: 'College friend of groom',
+        priority: 'high',
       },
     ];
 

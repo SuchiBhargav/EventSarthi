@@ -31,6 +31,32 @@ class GuestCreate(BaseModel):
         None, description="Dietary restrictions or preferences"
     )
     notes: Optional[str] = Field(None, description="Additional notes about the guest")
+    relation_type: Optional[str] = Field(
+        default="other", description="Relationship to host/event family"
+    )
+    tone_preference: Optional[str] = Field(
+        default="friendly", description="Preferred tone for personalized messages"
+    )
+    language: Optional[str] = Field(
+        default="en", description="Preferred guest communication language"
+    )
+    vip_level: Optional[str] = Field(
+        default="regular", description="Priority tier such as regular, vip, close"
+    )
+    food_preference: Optional[str] = Field(
+        None, description="Food preference such as veg, non-veg, vegan, jain"
+    )
+    room_number: Optional[str] = Field(None, description="Assigned room number")
+    hotel_name: Optional[str] = Field(None, description="Assigned hotel name")
+    whatsapp_opted_in: Optional[bool] = Field(
+        default=True, description="Whether WhatsApp communication is allowed"
+    )
+    notifications_enabled: Optional[bool] = Field(
+        default=True, description="Whether scheduled notifications are enabled"
+    )
+    custom_fields: Optional[dict] = Field(
+        default=None, description="Additional imported guest metadata"
+    )
 
     class Config:
         json_schema_extra = {
@@ -41,6 +67,16 @@ class GuestCreate(BaseModel):
                 "plus_one": True,
                 "dietary_restrictions": "Vegetarian",
                 "notes": "Close friend of the bride",
+                "relation_type": "friend",
+                "tone_preference": "friendly",
+                "language": "en",
+                "vip_level": "vip",
+                "food_preference": "veg",
+                "room_number": "201",
+                "hotel_name": "Grand Palace",
+                "whatsapp_opted_in": True,
+                "notifications_enabled": True,
+                "custom_fields": {"priority": "high"},
             }
         }
 
@@ -58,11 +94,34 @@ class GuestUpdate(BaseModel):
         None, description="Dietary restrictions"
     )
     notes: Optional[str] = Field(None, description="Additional notes")
+    relation_type: Optional[str] = Field(None, description="Relationship to host")
+    tone_preference: Optional[str] = Field(
+        None, description="Preferred tone for personalized messages"
+    )
+    language: Optional[str] = Field(None, description="Preferred language")
+    vip_level: Optional[str] = Field(None, description="Priority tier")
+    food_preference: Optional[str] = Field(None, description="Food preference")
+    room_number: Optional[str] = Field(None, description="Room number")
+    hotel_name: Optional[str] = Field(None, description="Hotel name")
+    whatsapp_opted_in: Optional[bool] = Field(
+        None, description="Whether WhatsApp communication is allowed"
+    )
+    notifications_enabled: Optional[bool] = Field(
+        None, description="Whether scheduled notifications are enabled"
+    )
+    custom_fields: Optional[dict] = Field(
+        None, description="Additional imported guest metadata"
+    )
     rsvp_status: Optional[RSVPStatus] = Field(None, description="RSVP status")
 
     class Config:
         json_schema_extra = {
-            "example": {"rsvp_status": "confirmed", "dietary_restrictions": "Vegan"}
+            "example": {
+                "rsvp_status": "confirmed",
+                "dietary_restrictions": "Vegan",
+                "relation_type": "family",
+                "vip_level": "vip",
+            }
         }
 
 
@@ -79,6 +138,20 @@ class GuestResponse(BaseModel):
         None, description="Dietary restrictions"
     )
     notes: Optional[str] = Field(None, description="Additional notes")
+    relation_type: Optional[str] = Field(None, description="Relationship to host")
+    tone_preference: Optional[str] = Field(
+        None, description="Preferred tone for personalized messages"
+    )
+    language: Optional[str] = Field(None, description="Preferred language")
+    vip_level: Optional[str] = Field(None, description="Priority tier")
+    food_preference: Optional[str] = Field(None, description="Food preference")
+    room_number: Optional[str] = Field(None, description="Room number")
+    hotel_name: Optional[str] = Field(None, description="Hotel name")
+    whatsapp_opted_in: bool = Field(..., description="WhatsApp opt-in flag")
+    notifications_enabled: bool = Field(..., description="Notification opt-in flag")
+    custom_fields: Optional[dict] = Field(
+        None, description="Additional imported guest metadata"
+    )
     rsvp_status: RSVPStatus = Field(..., description="RSVP status")
     rsvp_date: Optional[datetime] = Field(
         None, description="Date when RSVP was received"
@@ -98,6 +171,16 @@ class GuestResponse(BaseModel):
                 "plus_one": True,
                 "dietary_restrictions": "Vegetarian",
                 "notes": "Close friend of the bride",
+                "relation_type": "friend",
+                "tone_preference": "friendly",
+                "language": "en",
+                "vip_level": "vip",
+                "food_preference": "veg",
+                "room_number": "201",
+                "hotel_name": "Grand Palace",
+                "whatsapp_opted_in": True,
+                "notifications_enabled": True,
+                "custom_fields": {"priority": "high"},
                 "rsvp_status": "confirmed",
                 "rsvp_date": "2024-02-15T10:30:00Z",
                 "created_at": "2024-01-15T10:30:00Z",
